@@ -19,6 +19,7 @@ node_modules
 dist
 build
 bundle.js
+tsconfig-types.aegir.json
 
 # Deployment files
 .npmrc

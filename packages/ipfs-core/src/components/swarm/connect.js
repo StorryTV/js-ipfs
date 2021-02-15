@@ -4,15 +4,11 @@ const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
 /**
  * @param {Object} config
- * @param {import('.').NetworkService} config.network
+ * @param {import('../../types').NetworkService} config.network
  */
 module.exports = ({ network }) => {
   /**
-   * Open a connection to a given address.
-   *
-   * @param {import('.').Multiaddr} addr
-   * @param {import('.').AbortOptions} [options]
-   * @returns {Promise<void>}
+   * @type {import('ipfs-core-types/src/swarm').API["connect"]}
    */
   async function connect (addr, options) {
     const { libp2p } = await network.use(options)

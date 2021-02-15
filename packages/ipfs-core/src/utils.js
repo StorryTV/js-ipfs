@@ -9,6 +9,11 @@ const toCidAndPath = require('ipfs-core-utils/src/to-cid-and-path')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 /** @type {typeof Object.assign} */
 const mergeOptions = require('merge-options')
+const last = require('it-last')
+
+/**
+ * @typedef {import('ipfs-core-types/src/basic').AbortOptions} AbortOptions
+ */
 
 exports.mergeOptions = mergeOptions
 
@@ -38,6 +43,7 @@ const normalizePath = (pathStr) => {
 }
 
 // TODO: do we need both normalizePath and normalizeCidPath?
+// TODO: don't forget ipfs-core-utils/src/to-cid-and-path
 /**
  * @param {Uint8Array|CID|string} path
  * @returns {string}
@@ -68,12 +74,12 @@ const normalizeCidPath = (path) => {
  * - /ipfs/<base58 string>/link/to/pluto
  * - multihash Buffer
  *
- * @param {import('./components').DagReader} dag
+ * @param {import('ipld')} ipld
  * @param {CID | string} ipfsPath - A CID or IPFS path
  * @param {Object} [options] - Optional options passed directly to dag.resolve
  * @returns {Promise<CID>}
  */
-const resolvePath = async function (dag, ipfsPath, options = {}) {
+const resolvePath = async function (ipld, ipfsPath, options = {}) {
   if (isIpfs.cid(ipfsPath)) {
     // @ts-ignore - CID|string seems to confuse typedef
     return new CID(ipfsPath)
@@ -88,27 +94,24 @@ const resolvePath = async function (dag, ipfsPath, options = {}) {
     return cid
   }
 
-  const result = await dag.resolve(cid, {
-    ...options,
-    path
-  })
+  const result = await last(ipld.resolve(cid, path, options))
+
+  if (!result) {
+    throw new Error('Not found')
+  }
 
   return result.cid
 }
 
 /**
- * @typedef {import('ipfs-core-types/src/files').InputFile} InputFile
- * @typedef {import('ipfs-core-types/src/files').UnixFSFile} UnixFSFile
- * @typedef {import('ipfs-core-types/src/files').IPFSEntry} IPFSEntry
- * @typedef {import('ipfs-core-types/src').AbortOptions} AbortOptions
+ * @typedef {import('ipfs-unixfs-exporter').UnixFSEntry} UnixFSEntry
  *
- * @param {InputFile|UnixFSFile} file
+ * @param {UnixFSEntry} file
  * @param {Object} [options]
  * @param {boolean} [options.includeContent]
- * @returns {IPFSEntry}
  */
 const mapFile = (file, options = {}) => {
-  /** @type {IPFSEntry} */
+  /** @type {import('ipfs-core-types/src/root').IPFSEntry} */
   const output = {
     cid: file.cid,
     path: file.path,
@@ -118,11 +121,11 @@ const mapFile = (file, options = {}) => {
     type: 'file'
   }
 
-  if (file.unixfs) {
+  if (file.type === 'file' || file.type === 'directory') {
     // @ts-ignore - TS type can't be changed from File to Directory
-    output.type = file.unixfs.type === 'directory' ? 'dir' : 'file'
+    output.type = file.type === 'directory' ? 'dir' : 'file'
 
-    if (file.unixfs.type === 'file') {
+    if (file.type === 'file') {
       output.size = file.unixfs.fileSize()
 
       if (options.includeContent) {
@@ -132,7 +135,10 @@ const mapFile = (file, options = {}) => {
     }
 
     output.mode = file.unixfs.mode
-    output.mtime = file.unixfs.mtime
+
+    if (file.unixfs.mtime !== undefined) {
+      output.mtime = file.unixfs.mtime
+    }
   }
 
   return output

@@ -9,23 +9,37 @@ const toMfsPath = require('./utils/to-mfs-path')
 const toTrail = require('./utils/to-trail')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
+/**
+ * @typedef {import('multihashes').HashName} HashName
+ * @typedef {import('cids').CIDVersion} CIDVersion
+ * @typedef {import('./').MfsContext} MfsContext
+ * @typedef {object} DefaultOptions
+ * @property {boolean} recursive
+ * @property {CIDVersion} cidVersion
+ * @property {HashName} hashAlg
+ * @property {boolean} flush
+ * @property {number} shardSplitThreshold
+ * @property {AbortSignal} [signal]
+ * @property {number} [timeout]
+ */
+
+/**
+ * @type {DefaultOptions}
+ */
 const defaultOptions = {
   recursive: false,
   cidVersion: 0,
   hashAlg: 'sha2-256',
   flush: true,
-  signal: undefined
+  shardSplitThreshold: 1000
 }
 
 /**
- * @param {any} context
+ * @param {MfsContext} context
  */
 module.exports = (context) => {
   /**
-   * Remove a file or directory
-   *
-   * @param  {[...paths: Paths, options?:RmOptions]} args
-   * @returns {Promise<void>}
+   * @type {import('ipfs-core-types/src/files').API["rm"]}
    */
   async function mfsRm (...args) {
     const {
@@ -51,6 +65,11 @@ module.exports = (context) => {
   return withTimeoutOption(mfsRm)
 }
 
+/**
+ * @param {MfsContext} context
+ * @param {string} path
+ * @param {DefaultOptions} options
+ */
 const removePath = async (context, path, options) => {
   const mfsPath = await toMfsPath(context, path, options)
   const trail = await toTrail(context, mfsPath.mfsPath)
@@ -73,7 +92,8 @@ const removePath = async (context, path, options) => {
     name: child.name,
     hashAlg: options.hashAlg,
     cidVersion: options.cidVersion,
-    flush: options.flush
+    flush: options.flush,
+    shardSplitThreshold: options.shardSplitThreshold
   })
 
   parent.cid = cid
@@ -84,15 +104,3 @@ const removePath = async (context, path, options) => {
   // Update the MFS record with the new CID for the root of the tree
   await updateMfsRoot(context, newRootCid, options)
 }
-
-/**
- * @typedef {Object} RmOptions
- * @property {boolean} [recursive=false] - If true all paths under the specifed path(s) will be removed
- * @property {boolean} [flush=false] - If true the changes will be immediately flushed to disk
- * @property {string} [hashAlg='sha2-256'] - The hash algorithm to use for any updated entries
- * @property {0|1} [cidVersion] - The CID version to use for any updated entries
- *
- * @typedef {import('..').CID} CID
- * @typedef {import('./utils/types').Tuple<string>} Paths
- * @typedef {import('../../utils').AbortOptions} AbortOptions
- */

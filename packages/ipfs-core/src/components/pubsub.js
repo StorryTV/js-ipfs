@@ -7,11 +7,11 @@ const get = require('dlv')
 
 /**
  * @param {Object} config
- * @param {import('.').NetworkService} config.network
- * @param {import('.').IPFSConfig} [config.config]
+ * @param {import('../types').NetworkService} config.network
+ * @param {import('ipfs-core-types/src/config').Config} [config.config]
  */
 module.exports = ({ network, config }) => {
-  const isEnabled = get(config, 'Pubsub.Enabled', true)
+  const isEnabled = get(config || {}, 'Pubsub.Enabled', true)
 
   return {
     subscribe: isEnabled ? withTimeoutOption(subscribe) : notEnabled,
@@ -22,22 +22,7 @@ module.exports = ({ network, config }) => {
   }
 
   /**
-   * Subscribe to a pubsub topic.
-   *
-   * @example
-   * ```js
-   * const topic = 'fruit-of-the-day'
-   * const receiveMsg = (msg) => console.log(msg.data.toString())
-   *
-   * await ipfs.pubsub.subscribe(topic, receiveMsg)
-   * console.log(`subscribed to ${topic}`)
-   * ```
-   *
-   * @param {string} topic - The topic name
-   * @param {(message:Message) => void} handler - Event handler which will be
-   * called with a message object everytime one is received.
-   * @param {AbortOptions} [options]
-   * @returns {Promise<void>}
+   * @type {import('ipfs-core-types/src/pubsub').API["subscribe"]}
    */
   async function subscribe (topic, handler, options) {
     const { libp2p } = await network.use(options)
@@ -46,33 +31,7 @@ module.exports = ({ network, config }) => {
   }
 
   /**
-   * Unsubscribes from a pubsub topic.
-   *
-   * @example
-   * ```js
-   * const topic = 'fruit-of-the-day'
-   * const receiveMsg = (msg) => console.log(msg.toString())
-   *
-   * await ipfs.pubsub.subscribe(topic, receiveMsg)
-   * console.log(`subscribed to ${topic}`)
-   *
-   * await ipfs.pubsub.unsubscribe(topic, receiveMsg)
-   * console.log(`unsubscribed from ${topic}`)
-   *
-   * // Or removing all listeners:
-   *
-   * const topic = 'fruit-of-the-day'
-   * const receiveMsg = (msg) => console.log(msg.toString())
-   * await ipfs.pubsub.subscribe(topic, receiveMsg);
-   * // Will unsubscribe ALL handlers for the given topic
-   * await ipfs.pubsub.unsubscribe(topic);
-   * ```
-   *
-   * @param {string} topic - The topic to unsubscribe from
-   * @param {(message:Message) => void} [handler] - The handler to remove. If
-   * not provided unsubscribes al handlers for the topic.
-   * @param {AbortOptions} [options]
-   * @returns {Promise<void>}
+   * @type {import('ipfs-core-types/src/pubsub').API["unsubscribe"]}
    */
   async function unsubscribe (topic, handler, options) {
     const { libp2p } = await network.use(options)
@@ -81,22 +40,7 @@ module.exports = ({ network, config }) => {
   }
 
   /**
-   * Publish a data message to a pubsub topic.
-   *
-   * @example
-   * ```js
-   * const topic = 'fruit-of-the-day'
-   * const msg = new TextEncoder().encode('banana')
-   *
-   * await ipfs.pubsub.publish(topic, msg)
-   * // msg was broadcasted
-   * console.log(`published to ${topic}`)
-   * ```
-   *
-   * @param {string} topic
-   * @param {Uint8Array} data
-   * @param {AbortOptions} options
-   * @returns {Promise<void>}
+   * @type {import('ipfs-core-types/src/pubsub').API["publish"]}
    */
   async function publish (topic, data, options) {
     const { libp2p } = await network.use(options)
@@ -105,11 +49,9 @@ module.exports = ({ network, config }) => {
     }
     await libp2p.pubsub.publish(topic, data)
   }
+
   /**
-   * Returns the list of subscriptions the peer is subscribed to.
-   *
-   * @param {AbortOptions} [options]
-   * @returns {Promise<string[]>}
+   * @type {import('ipfs-core-types/src/pubsub').API["ls"]}
    */
   async function ls (options) {
     const { libp2p } = await network.use(options)
@@ -117,19 +59,7 @@ module.exports = ({ network, config }) => {
   }
 
   /**
-   * Returns the peers that are subscribed to one topic.
-   *
-   * @example
-   * ```js
-   * const topic = 'fruit-of-the-day'
-   *
-   * const peerIds = await ipfs.pubsub.peers(topic)
-   * console.log(peerIds)
-   * ```
-   *
-   * @param {string} topic
-   * @param {AbortOptions} [options]
-   * @returns {Promise<string[]>} - An array of peer IDs subscribed to the topic
+   * @type {import('ipfs-core-types/src/pubsub').API["peers"]}
    */
   async function peers (topic, options) {
     const { libp2p } = await network.use(options)
@@ -140,13 +70,3 @@ module.exports = ({ network, config }) => {
 const notEnabled = async () => { // eslint-disable-line require-await
   throw new NotEnabledError('pubsub not enabled')
 }
-
-/**
- * @typedef {Object} Message
- * @property {string} from
- * @property {Uint8Array} seqno
- * @property {Uint8Array} data
- * @property {string[]} topicIDs
- *
- * @typedef {import('.').AbortOptions} AbortOptions
- */

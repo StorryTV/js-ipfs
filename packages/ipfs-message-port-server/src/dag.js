@@ -5,12 +5,12 @@ const { decodeNode, encodeNode } = require('ipfs-message-port-protocol/src/dag')
 const collect = require('it-all')
 
 /**
- * @typedef {import('./ipfs').IPFS} IPFS
+ * @typedef {import('ipfs-core-types').IPFS} IPFS
  * @typedef {import('ipfs-message-port-protocol/src/cid').CID} CID
  * @typedef {import('ipfs-message-port-protocol/src/cid').EncodedCID} EncodedCID
  * @typedef {import('ipfs-message-port-protocol/src/dag').DAGNode} DAGNode
  * @typedef {import('ipfs-message-port-protocol/src/dag').EncodedDAGNode} EncodedDAGNode
- *
+ * @typedef {import('ipfs-core-types/src/dag').PutOptions} PutOptions
  *
  * @typedef {Object} DAGEntry
  * @property {DAGNode} value
@@ -28,14 +28,9 @@ exports.DAGService = class DAGService {
   /**
    * @typedef {Object} PutDag
    * @property {EncodedDAGNode} dagNode
-   * @property {string} [hashAlg]
-   * @property {EncodedCID|void} [cid]
-   * @property {boolean} [pin]
-   * @property {boolean} [preload]
-   * @property {number} [timeout]
-   * @property {AbortSignal} [signal]
+   * @property {EncodedCID} [cid]
    *
-   * @param {PutDag} query
+   * @param {PutOptions & PutDag} query
    * @returns {Promise<EncodedCID>}
    */
   async put (query) {
@@ -51,7 +46,7 @@ exports.DAGService = class DAGService {
   /**
    * @typedef {Object} GetResult
    * @property {Transferable[]} transfer
-   * @property {string} remainderPath
+   * @property {string} [remainderPath]
    * @property {EncodedDAGNode} value
    *
    * @typedef {Object} GetDAG

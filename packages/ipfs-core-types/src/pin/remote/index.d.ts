@@ -1,7 +1,7 @@
 import CID from 'cids'
 import Multiaddr from 'multiaddr'
-import { API as Service } from './remote/service'
-import { AbortOptions } from '../basic'
+import { API as Service } from './service'
+import { AbortOptions } from '../../basic'
 
 export interface API {
   /**

@@ -10,7 +10,10 @@ const {
 const { decodeCID, encodeCID } = require('ipfs-message-port-protocol/src/cid')
 
 /**
- * @typedef {import("./ipfs").IPFS} IPFS
+ * @typedef {import('cids').CIDVersion} CIDVersion
+ * @typedef {import('ipfs-core-types').IPFS} IPFS
+ * @typedef {import('ipfs-core-types/src/root').AddOptions} AddOptions
+ * @typedef {import('ipfs-core-types/src/root').AddAllOptions} AddAllOptions
  * @typedef {import("ipfs-message-port-protocol/src/data").Time} Time
  * @typedef {import("ipfs-message-port-protocol/src/data").UnixFSTime} UnixFSTime
  * @typedef {import("ipfs-message-port-protocol/src/data").Mode} Mode
@@ -22,6 +25,8 @@ const { decodeCID, encodeCID } = require('ipfs-message-port-protocol/src/cid')
  * @typedef {import('./ipfs').FileContent} DecodedFileContent
  * @typedef {import('./ipfs').FileInput} DecodedFileInput
  * @typedef {import('./ipfs').LsEntry} LsEntry
+ * @typedef {import('ipfs-unixfs-importer').ImportResult} ImportResult
+ * @typedef {import('ipfs-unixfs-importer').ImportCandidate} ImportCandidate
  */
 
 /**
@@ -34,29 +39,16 @@ const { decodeCID, encodeCID } = require('ipfs-message-port-protocol/src/cid')
  */
 
 /**
- * @typedef {Object} AddOptions
- * @property {string} [chunker]
- * @property {number} [cidVersion]
- * @property {boolean} [enableShardingExperiment]
- * @property {HashAlg} [hashAlg]
- * @property {boolean} [onlyHash]
- * @property {boolean} [pin]
- * @property {RemoteCallback|void} [progress]
- * @property {boolean} [rawLeaves]
- * @property {number} [shardSplitThreshold]
- * @property {boolean} [trickle]
- * @property {boolean} [wrapWithDirectory]
- * @property {number} [timeout]
- * @property {AbortSignal} [signal]
- *
  * @typedef {Object} AddAllInput
  * @property {MultiFileInput} input
+ * @property {RemoteCallback} progress
  *
  * @typedef {Object} AddInput
  * @property {SingleFileInput} input
+ * @property {RemoteCallback} progress
  *
  * @typedef {AddInput & AddOptions} AddQuery
- * @typedef {AddAllInput & AddOptions} AddAllQuery
+ * @typedef {AddAllInput & AddAllOptions} AddAllQuery
  *
  * @typedef {ArrayBuffer|ArrayBufferView|Blob|string|FileInput|RemoteIterable<ArrayBufferView|ArrayBuffer>} SingleFileInput
  * @typedef {RemoteIterable<ArrayBuffer|ArrayBufferView|Blob|string|FileInput>} MultiFileInput
@@ -133,9 +125,11 @@ exports.CoreService = class CoreService {
 
     if (progress) {
       const fn = decodeCallback(progress)
-      progressCallback = (bytes, fileName) => fn([bytes, fileName])
+      /** @type {import('ipfs-core-types/src/root').AddProgressFn} */
+      progressCallback = (bytes, fileName) => { fn([bytes, fileName]) }
     }
 
+    /** @type {AddAllOptions} */
     const options = {
       chunker,
       cidVersion,
@@ -169,13 +163,11 @@ exports.CoreService = class CoreService {
     const {
       chunker,
       cidVersion,
-      enableShardingExperiment,
       hashAlg,
       onlyHash,
       pin,
       progress,
       rawLeaves,
-      shardSplitThreshold,
       trickle,
       wrapWithDirectory,
       timeout,
@@ -186,18 +178,18 @@ exports.CoreService = class CoreService {
 
     if (progress) {
       const fn = decodeCallback(progress)
-      progressCallback = (bytes, fileName) => fn([bytes, fileName])
+      /** @type {import('ipfs-core-types/src/root').AddProgressFn} */
+      progressCallback = (bytes, fileName) => { fn([bytes, fileName]) }
     }
 
+    /** @type {AddOptions} */
     const options = {
       chunker,
       cidVersion,
-      enableShardingExperiment,
       hashAlg,
       onlyHash,
       pin,
       rawLeaves,
-      shardSplitThreshold,
       trickle,
       wrapWithDirectory,
       timeout,
@@ -319,7 +311,7 @@ const matchInput = (input, decode) => {
 }
 
 /**
- * @param {AsyncIterable<FileOutput>} out
+ * @param {AsyncIterable<ImportResult>} out
  * @returns {AddAllResult}
  */
 const encodeAddAllResult = out => {
@@ -332,7 +324,7 @@ const encodeAddAllResult = out => {
 }
 
 /**
- * @param {FileOutput} out
+ * @param {ImportResult} out
  * @returns {AddResult}
  */
 const encodeAddResult = out => {

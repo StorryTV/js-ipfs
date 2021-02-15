@@ -32,7 +32,6 @@
     "url": "git+https://github.com/ipfs/js-ipfs.git"
   },
   "scripts": {
-    "prepare": "npm run build",
     "build": "aegir build",
     "test": "aegir test",
     "test:browser": "aegir test -t browser",
@@ -45,6 +44,7 @@
     "dep-check": "aegir dep-check -i rimraf"
   },
   "dependencies": {
+    "ipfs-core-types": "^0.3.1",
     "ipfs-message-port-protocol": "^0.6.1",
     "it-all": "^1.0.4"
   },

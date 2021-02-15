@@ -80,6 +80,7 @@ module.exports = (common, options) => {
       await ipfs.files.write(src1, [], {
         create: true
       })
+
       await expect(ipfs.files.cp(src1, `${parent}/child`)).to.eventually.be.rejectedWith(Error)
         .that.has.property('message').that.matches(/"identity"/)
     })

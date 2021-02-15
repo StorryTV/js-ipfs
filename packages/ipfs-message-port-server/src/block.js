@@ -9,7 +9,7 @@ const {
 } = require('ipfs-message-port-protocol/src/block')
 
 /**
- * @typedef {import('./ipfs').IPFS} IPFS
+ * @typedef {import('ipfs-core-types').IPFS} IPFS
  * @typedef {import('cids')} CID
  * @typedef {import('ipfs-message-port-protocol/src/error').EncodedError} EncodedError
  * @typedef {import('ipfs-message-port-protocol/src/block').Block} Block
@@ -17,6 +17,7 @@ const {
  * @typedef {import('ipfs-message-port-protocol/src/block').EncodedBlock} EncodedBlock
  * @typedef {RmEntry} Rm
  * @typedef {StatResult} Stat
+ * @typedef {import('ipfs-core-types/src/block').PutOptions} PutOptions
  */
 
 exports.BlockService = class BlockService {
@@ -56,17 +57,10 @@ exports.BlockService = class BlockService {
    * @typedef {Object} PutQuery
    * @property {EncodedBlock|Uint8Array} block
    * @property {EncodedCID|undefined} [cid]
-   * @property {string} [format]
-   * @property {string} [mhtype]
-   * @property {number} [mhlen]
-   * @property {number} [version]
-   * @property {boolean} [pin]
-   * @property {number} [timeout]
-   * @property {AbortSignal} [signal]
    *
    * Stores input as an IPFS block.
    *
-   * @param {PutQuery} query
+   * @param {PutOptions & PutQuery} query
    * @returns {Promise<PutResult>}
    */
   async put (query) {

@@ -1,7 +1,7 @@
 'use strict'
 
 const log = require('debug')('ipfs:mfs:write')
-const importer = require('ipfs-unixfs-importer')
+const { importer } = require('ipfs-unixfs-importer')
 const stat = require('./stat')
 const mkdir = require('./mkdir')
 const addLink = require('./utils/add-link')
@@ -20,9 +20,39 @@ const {
 const last = require('it-last')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
+/**
+ * @typedef {import('multihashes').HashName} HashName
+ * @typedef {import('cids').CIDVersion} CIDVersion
+ * @typedef {import('ipfs-core-types/src/basic').ToMTime} Mtime
+ * @typedef {import('./').MfsContext} MfsContext
+ * @typedef {import('./utils/to-mfs-path').FilePath} FilePath
+ * @typedef {object} DefaultOptions
+ * @property {number} offset
+ * @property {number} length
+ * @property {boolean} create
+ * @property {boolean} truncate
+ * @property {boolean} rawLeaves
+ * @property {boolean} reduceSingleLeafToSelf
+ * @property {CIDVersion} cidVersion
+ * @property {HashName} hashAlg
+ * @property {boolean} parents
+ * @property {import('ipfs-core-types/src/root').AddProgressFn} progress
+ * @property {'trickle' | 'balanced'} strategy
+ * @property {boolean} flush
+ * @property {'raw' | 'file'} leafType
+ * @property {number} shardSplitThreshold
+ * @property {Mtime} [mtime]
+ * @property {number} [mode]
+ * @property {AbortSignal} [signal]
+ * @property {number} [timeout]
+ */
+
+/**
+ * @type {DefaultOptions}
+ */
 const defaultOptions = {
   offset: 0, // the offset in the file to begin writing
-  length: undefined, // how many bytes from the incoming buffer to write
+  length: Infinity, // how many bytes from the incoming buffer to write
   create: false, // whether to create the file if it does not exist
   truncate: false, // whether to truncate the file first
   rawLeaves: false,
@@ -30,27 +60,23 @@ const defaultOptions = {
   cidVersion: 0,
   hashAlg: 'sha2-256',
   parents: false, // whether to create intermediate directories if they do not exist
-  progress: () => {},
+  progress: (bytes, path) => {},
   strategy: 'trickle',
   flush: true,
   leafType: 'raw',
-  shardSplitThreshold: 1000,
-  mode: undefined,
-  mtime: undefined,
-  signal: undefined
+  shardSplitThreshold: 1000
 }
 
+/**
+ * @param {MfsContext} context
+ */
 module.exports = (context) => {
   /**
-   * Write to an MFS path
-   *
-   * @param {string} path - The MFS path where you will write to
-   * @param {string|Uint8Array|AsyncIterable<Uint8Array>|Blob} content - The content to write to the path
-   * @param {WriteOptions & AbortOptions} [options]
-   * @returns {Promise<void>}
+   * @type {import('ipfs-core-types/src/files').API["write"]}
    */
-  async function mfsWrite (path, content, options = {}) {
-    options = mergeOptions(defaultOptions, options)
+  async function mfsWrite (path, content, opts = {}) {
+    /** @type {DefaultOptions} */
+    const options = mergeOptions(defaultOptions, opts)
 
     let source, destination, parent
     log('Reading source, destination and parent')
@@ -60,14 +86,27 @@ module.exports = (context) => {
       parent = await toMfsPath(context, destination.mfsDirectory, options)
     })()
     log('Read source, destination and parent')
-    // @ts-ignore - parent maybe undefined
+    // @ts-ignore - parent may be undefined
     if (!options.parents && !parent.exists) {
       throw errCode(new Error('directory does not exist'), 'ERR_NO_EXIST')
     }
 
-    // @ts-ignore - parent maybe undefined
+    if (!source) {
+      throw errCode(new Error('could not create source'), 'ERR_NO_SOURCE')
+    }
+
+    if (!destination) {
+      throw errCode(new Error('could not create destination'), 'ERR_NO_DESTINATION')
+    }
+
+    // @ts-ignore - destination may be never
     if (!options.create && !destination.exists) {
       throw errCode(new Error('file does not exist'), 'ERR_NO_EXIST')
+    }
+
+    // @ts-ignore - destination may be never
+    if (destination.entryType !== 'file') {
+      throw errCode(new Error('not a file'), 'ERR_NOT_A_FILE')
     }
 
     return updateOrImport(context, path, source, destination, options)
@@ -76,6 +115,13 @@ module.exports = (context) => {
   return withTimeoutOption(mfsWrite)
 }
 
+/**
+ * @param {MfsContext} context
+ * @param {string} path
+ * @param {AsyncIterable<Uint8Array>} source
+ * @param {FilePath} destination
+ * @param {DefaultOptions} options
+ */
 const updateOrImport = async (context, path, source, destination, options) => {
   const child = await write(context, source, destination, options)
 
@@ -84,6 +130,11 @@ const updateOrImport = async (context, path, source, destination, options) => {
   await createLock().writeLock(async () => {
     const pathComponents = toPathComponents(path)
     const fileName = pathComponents.pop()
+
+    if (fileName == null) {
+      throw errCode(new Error('source does not exist'), 'ERR_NO_EXIST')
+    }
+
     let parentExists = false
 
     try {
@@ -104,7 +155,11 @@ const updateOrImport = async (context, path, source, destination, options) => {
     const trail = await toTrail(context, updatedPath.mfsDirectory)
     const parent = trail[trail.length - 1]
 
-    if (!parent.type.includes('directory')) {
+    if (!parent) {
+      throw errCode(new Error('directory does not exist'), 'ERR_NO_EXIST')
+    }
+
+    if (!parent.type || !parent.type.includes('directory')) {
       throw errCode(new Error(`cannot write to ${parent.name}: Not a directory`), 'ERR_NOT_A_DIRECTORY')
     }
 
@@ -131,6 +186,12 @@ const updateOrImport = async (context, path, source, destination, options) => {
   })()
 }
 
+/**
+ * @param {MfsContext} context
+ * @param {AsyncIterable<Uint8Array>} source
+ * @param {FilePath} destination
+ * @param {DefaultOptions} options
+ */
 const write = async (context, source, destination, options) => {
   if (destination.exists) {
     log(`Overwriting file ${destination.cid} offset ${options.offset} length ${options.length}`)
@@ -138,6 +199,7 @@ const write = async (context, source, destination, options) => {
     log(`Writing file offset ${options.offset} length ${options.length}`)
   }
 
+  /** @type {Array<() => AsyncIterable<Uint8Array>>} */
   const sources = []
 
   // pad start of file if necessary
@@ -206,7 +268,7 @@ const write = async (context, source, destination, options) => {
 
   let mtime
 
-  if (options.mtime !== undefined && options.mtine !== null) {
+  if (options.mtime != null) {
     mtime = options.mtime
   } else if (destination && destination.unixfs) {
     mtime = destination.unixfs.mtime
@@ -229,6 +291,10 @@ const write = async (context, source, destination, options) => {
     pin: false
   }))
 
+  if (!result) {
+    throw errCode(new Error(`cannot write to ${parent.name}`), 'ERR_COULD_NOT_WRITE')
+  }
+
   log(`Wrote ${result.cid}`)
 
   return {
@@ -237,6 +303,10 @@ const write = async (context, source, destination, options) => {
   }
 }
 
+/**
+ * @param {AsyncIterable<Uint8Array>} stream
+ * @param {number} limit
+ */
 const limitAsyncStreamBytes = (stream, limit) => {
   return async function * _limitAsyncStreamBytes () {
     let emitted = 0
@@ -255,26 +325,35 @@ const limitAsyncStreamBytes = (stream, limit) => {
   }
 }
 
+/**
+ * @param {number} count
+ * @param {number} chunkSize
+ */
 const asyncZeroes = (count, chunkSize = MFS_MAX_CHUNK_SIZE) => {
   const buf = new Uint8Array(chunkSize)
 
-  const stream = {
-    [Symbol.asyncIterator]: function * _asyncZeroes () {
-      while (true) {
-        yield buf.slice()
-      }
+  async function * _asyncZeroes () {
+    while (true) {
+      yield buf.slice()
     }
   }
 
-  return limitAsyncStreamBytes(stream, count)
+  return limitAsyncStreamBytes(_asyncZeroes(), count)
 }
 
+/**
+ * @param {Array<() => AsyncIterable<Uint8Array>>} sources
+ */
 const catAsyncIterators = async function * (sources) { // eslint-disable-line require-await
   for (let i = 0; i < sources.length; i++) {
     yield * sources[i]()
   }
 }
 
+/**
+ * @param {AsyncIterable<Uint8Array>} source
+ * @param {(count: number) => AsyncIterable<Uint8Array>} notify
+ */
 const countBytesStreamed = async function * (source, notify) {
   let wrote = 0
 
@@ -290,20 +369,3 @@ const countBytesStreamed = async function * (source, notify) {
     yield buf
   }
 }
-
-/**
- * @typedef {Object} WriteOptions
- * @property {number} [offset] - An offset to start writing to file at
- * @property {number} [length] - Optionally limit how many bytes are read from the stream
- * @property {boolean} [create=false] - Create the MFS path if it does not exist
- * @property {boolean} [parents=false] - Create intermediate MFS paths if they do not exist
- * @property {boolean} [truncate=false] - Truncate the file at the MFS path if it would have been larger than the passed content
- * @property {boolean} [rawLeaves=false] - If true, DAG leaves will contain raw file data and not be wrapped in a protobuf
- * @property {import('ipfs-core-types/src/files').ToMode} [mode] - An integer that represents the file mode
- * @property {import('ipfs-core-types/src/files').ToMTime} [mtime] - A Date object, an object with `{ secs, nsecs }` properties where secs is the number of seconds since (positive) or before (negative) the Unix Epoch began and nsecs is the number of nanoseconds since the last full second, or the output of `process.hrtime()
- * @property {boolean} [flush] - If true the changes will be immediately flushed to disk
- * @property {string} [hashAlg='sha2-256'] - The hash algorithm to use for any updated entries
- * @property {0|1} [cidVersion=0] - The CID version to use for any updated entries
- *
- * @typedef {import('../../utils').AbortOptions} AbortOptions
- */

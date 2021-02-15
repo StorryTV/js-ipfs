@@ -13,8 +13,12 @@ const log = Object.assign(debug('ipfs:ipns:offline-datastore'), {
 // Offline datastore aims to mimic the same encoding as routing when storing records
 // to the local datastore
 class OfflineDatastore {
+  /**
+   * @param {import('ipfs-repo')} repo
+   */
   constructor (repo) {
     this._repo = repo
+    this.stores = []
   }
 
   /**
@@ -22,7 +26,6 @@ class OfflineDatastore {
    *
    * @param {Uint8Array} key - identifier of the value.
    * @param {Uint8Array} value - value to be stored.
-   * @returns {Promise<void>}
    */
   async put (key, value) { // eslint-disable-line require-await
     if (!(key instanceof Uint8Array)) {
@@ -52,7 +55,6 @@ class OfflineDatastore {
    * Get a value from the local datastore indexed by the received key properly encoded.
    *
    * @param {Uint8Array} key - identifier of the value to be obtained.
-   * @returns {Promise<Uint8Array>}
    */
   async get (key) {
     if (!(key instanceof Uint8Array)) {
@@ -82,7 +84,11 @@ class OfflineDatastore {
     return record.value
   }
 
-  // encode key properly - base32(/ipns/{cid})
+  /**
+   * encode key properly - base32(/ipns/{cid})
+   *
+   * @param {Uint8Array} key
+   */
   _routingKey (key) {
     return new Key('/' + encodeBase32(key), false)
   }

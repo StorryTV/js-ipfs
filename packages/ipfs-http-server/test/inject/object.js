@@ -11,7 +11,7 @@ const testHttpMethod = require('../utils/test-http-method')
 const http = require('../utils/http')
 const sinon = require('sinon')
 const CID = require('cids')
-const UnixFS = require('ipfs-unixfs')
+const { UnixFS } = require('ipfs-unixfs')
 const { AbortSignal } = require('native-abort-controller')
 const {
   DAGNode,
@@ -555,7 +555,7 @@ describe('/object', () => {
       }, { ipfs })
 
       expect(res).to.have.property('statusCode', 200)
-      expect(res).to.have.property('result', emptyDirectoryNode.Data)
+      expect(res).to.have.deep.property('rawPayload', emptyDirectoryNode.Data)
     })
 
     it('accepts a timeout', async () => {
@@ -570,7 +570,7 @@ describe('/object', () => {
       }, { ipfs })
 
       expect(res).to.have.property('statusCode', 200)
-      expect(res).to.have.property('result', emptyDirectoryNode.Data)
+      expect(res).to.have.deep.property('rawPayload', emptyDirectoryNode.Data)
     })
   })
 

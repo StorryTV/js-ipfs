@@ -10,8 +10,9 @@ const { encodeCID } = require('ipfs-message-port-protocol/src/cid')
 /**
  * @typedef {import('ipfs-message-port-protocol/src/data').HashAlg} HashAlg
  * @typedef {import('ipfs-message-port-protocol/src/data').Mode} Mode
- * @typedef {import('./ipfs').IPFS} IPFS
+ * @typedef {import('ipfs-core-types').IPFS} IPFS
  * @typedef {Stat} EncodedStat
+ * @typedef {import('ipfs-core-types/src/mfs').StatOptions} StatOptions
  */
 
 exports.FilesService = class FilesService {
@@ -26,11 +27,6 @@ exports.FilesService = class FilesService {
   /**
    * @typedef {Object} StatQuery
    * @property {string} path
-   * @property {boolean} [hash=false]
-   * @property {boolean} [size=false]
-   * @property {boolean} [withLocal=false]
-   * @property {number} [timeout]
-   * @property {AbortSignal} [signal]
    *
    * @typedef {Object} Stat
    * @property {EncodedCID} cid
@@ -46,7 +42,7 @@ exports.FilesService = class FilesService {
    * @property {Stat} stat
    * @property {Transferable[]} transfer
    *
-   * @param {StatQuery} input
+   * @param {StatOptions & StatQuery} input
    * @returns {Promise<StatResult>}
    */
   async stat (input) {

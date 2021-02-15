@@ -5,15 +5,11 @@ const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
 /**
  * @param {Object} config
- * @param {import('.').Repo} config.repo
+ * @param {import('ipfs-repo')} config.repo
  */
 module.exports = ({ repo }) => {
   /**
-   * If the repo has been initialized, report the current version.
-   * Otherwise report the version that would be initialized.
-   *
-   * @param {import('.').AbortOptions} options
-   * @returns {Promise<number>}
+   * @type {import('ipfs-core-types/src/repo').API["version"]}
    */
   async function version (options) {
     try {
@@ -35,7 +31,7 @@ module.exports = ({ repo }) => {
       throw err
     }
 
-    return repo.version.get(options)
+    return repo.version.get()
   }
 
   return withTimeoutOption(version)

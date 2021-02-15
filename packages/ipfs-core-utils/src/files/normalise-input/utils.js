@@ -22,7 +22,7 @@ function isBlob (obj) {
  * An object with a path or content property
  *
  * @param {any} obj
- * @returns {obj is import('ipfs-core-types/src/files').ToEntry}
+ * @returns {obj is import('ipfs-core-types/src/basic').ToEntry}
  */
 function isFileObject (obj) {
   return typeof obj === 'object' && (obj.path || obj.content)
@@ -95,8 +95,7 @@ function mtimeToObject (mtime) {
 }
 
 /**
- * @param {any} mode
- * @returns {number|undefined}
+ * @param {number | string | null | undefined} mode
  */
 function modeToNumber (mode) {
   if (mode == null) {

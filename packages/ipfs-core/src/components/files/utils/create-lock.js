@@ -1,10 +1,21 @@
 'use strict'
 
+// @ts-ignore
 const mortice = require('mortice')
 
+/**
+ * @typedef {object} Lock
+ * @property {import('ipfs-core-types/src/basic').HigherOrderFn} readLock
+ * @property {import('ipfs-core-types/src/basic').HigherOrderFn} writeLock
+ */
+
+/** @type {Lock} */
 let lock
 
-module.exports = (repoOwner) => {
+/**
+ * @param {boolean} [repoOwner]
+ */
+module.exports = (repoOwner = false) => {
   if (lock) {
     return lock
   }

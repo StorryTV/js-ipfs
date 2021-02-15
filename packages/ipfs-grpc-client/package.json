@@ -30,7 +30,6 @@
     "url": "git+https://github.com/ipfs/js-ipfs.git"
   },
   "scripts": {
-    "prepare": "npm run build",
     "build": "aegir build",
     "test": "aegir test",
     "lint": "aegir lint",
@@ -43,14 +42,14 @@
     "change-case": "^4.1.1",
     "cids": "^1.1.5",
     "debug": "^4.1.1",
-    "err-code": "^2.0.3",
+    "err-code": "^3.0.1",
     "ipfs-core-utils": "^0.7.2",
     "ipfs-grpc-protocol": "^0.2.0",
     "it-first": "^1.0.4",
     "it-pushable": "^1.4.0",
     "multiaddr": "^8.0.0",
     "protobufjs": "^6.10.2",
-    "wherearewe": "0.0.1",
+    "wherearewe": "1.0.0",
     "ws": "^7.3.1"
   },
   "devDependencies": {

@@ -13,6 +13,7 @@ const uint8ArrayFromString = require('uint8arrays/from-string')
 module.exports = configure(api => {
   return async (obj, options = {}) => {
     let tmpObj = {
+      /** @type {{ Name: string, Hash: string, Size: number }[]} */
       Links: []
     }
 
@@ -23,7 +24,7 @@ module.exports = configure(api => {
           Links: []
         }
       }
-    } else if (DAGNode.isDAGNode(obj)) {
+    } else if (obj instanceof DAGNode) {
       tmpObj = {
         Data: unit8ArrayToString(obj.Data),
         Links: obj.Links.map(l => ({

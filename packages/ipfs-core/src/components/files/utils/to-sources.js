@@ -3,9 +3,22 @@
 const toMfsPath = require('./to-mfs-path')
 const mergeOptions = require('merge-options').bind({ ignoreUndefined: true })
 
+/**
+ * @typedef {import('../').MfsContext} MfsContext
+ */
+
+/**
+ * @template O
+ *
+ * @param {MfsContext} context
+ * @param {*} args
+ * @param {O} defaultOptions
+ */
 async function toSources (context, args, defaultOptions) {
+  /** @type {string[]} */
   const sources = []
-  let options
+  /** @type {O} */
+  let options = defaultOptions
 
   // takes string arguments and a final optional non-string argument
   for (let i = 0; i < args.length; i++) {
@@ -19,7 +32,7 @@ async function toSources (context, args, defaultOptions) {
   options = mergeOptions(defaultOptions, options)
 
   return {
-    sources: await toMfsPath(context, sources, options),
+    sources: await Promise.all(sources.map(source => toMfsPath(context, source, options))),
     options
   }
 }

@@ -9,17 +9,12 @@ import {
 } from 'ipfs-message-port-protocol/src/data'
 import { ReadStream } from 'fs'
 import Block from 'ipld-block'
+import {
+  AddAllOptions,
+  AddOptions
+} from 'ipfs-core-types/src/root'
 
 type Mode = string | number
-export interface IPFS extends Core {
-  dag: DAG
-  files: Files
-  block: BlockService
-}
-
-export interface IPFSFactory {
-  create: () => Promise<IPFS>
-}
 
 export interface AbortOptions {
   timeout?: number
@@ -56,25 +51,10 @@ export interface DAG {
 }
 
 export interface Core {
-  addAll: (inputs: AddAllInput, options: AddOptions) => AsyncIterable<FileOutput>
+  addAll: (inputs: AddAllInput, options: AddAllOptions) => AsyncIterable<FileOutput>
   add: (input: AddInput, options: AddOptions) => Promise<FileOutput>
   cat: (ipfsPath: CID | string, options: CatOptions) => AsyncIterable<Uint8Array>
-
   ls: (ipfsPath: CID | string, options: CoreLsOptions) => AsyncIterable<LsEntry>
-}
-
-export interface AddOptions extends AbortOptions {
-  chunker?: string
-  cidVersion?: number
-  enableShardingExperiment?: boolean
-  hashAlg?: HashAlg
-  onlyHash?: boolean
-  pin?: boolean
-  progress?: (progress: number) => void
-  rawLeaves?: boolean
-  shardSplitThreshold?: number
-  trickle?: boolean
-  wrapWithDirectory?: boolean
 }
 
 export interface FileInput {
