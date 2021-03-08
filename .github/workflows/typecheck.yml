@@ -26,8 +26,7 @@ jobs:
         with:
           node-version: 15
       - name: Install dependencies
-        run: npm install -g @mapbox/node-pre-gyp
-        run: npm install
+        run: npm install -g @mapbox/node-pre-gyp && npm install
       - name: Typecheck ${{ matrix.project }}
         uses: gozala/typescript-error-reporter-action@v1.0.8
         with:

@@ -22,8 +22,7 @@ jobs:
         with:
           node-version: 15
       - name: Install dependencies
-        run: npm install -g @mapbox/node-pre-gyp
-        run: npm install
+        run: npm install -g @mapbox/node-pre-gyp && npm install
       - name: Bundlesize ${{ matrix.project }}
         uses: ipfs/aegir/actions/bundle-size@v31.0.4
         with:
