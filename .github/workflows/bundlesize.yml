@@ -19,6 +19,7 @@ jobs:
           - packages/ipfs-message-port-client
     steps:
       - uses: actions/checkout@v2
+      - run: npm --version
       - run: npm install
       - name: Bundlesize ${{ matrix.project }}
         uses: ipfs/aegir/actions/bundle-size@v31.0.4
