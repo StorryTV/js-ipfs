@@ -21,6 +21,8 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 15
+      - run: node --version
+      - run: npm --version
       - name: Install dependencies
         run: npm install -g @mapbox/node-pre-gyp && npm install
       - name: Bundlesize ${{ matrix.project }}
