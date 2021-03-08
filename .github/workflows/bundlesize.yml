@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest # https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu1804-README.md
     strategy:
       matrix:
-        node-version: 15
+        node-version: [15.x]
         project:
           - packages/ipfs-core-utils
           - packages/ipfs-core
@@ -19,9 +19,7 @@ jobs:
           - packages/ipfs-message-port-client
     steps:
       - uses: actions/checkout@v2
-      - run: node --version
-      - run: npm --version
-      - run: npm install
+      - run: npm install -g npm @mapbox/node-pre-gyp && npm install
       - name: Bundlesize ${{ matrix.project }}
         uses: ipfs/aegir/actions/bundle-size@v31.0.4
         with:

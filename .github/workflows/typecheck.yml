@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: 15
+        node-version: [15.x]
         project:
           - packages/ipfs-core-utils
           - packages/ipfs-core
@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
-        run: npm install -g @mapbox/node-pre-gyp && npm install && npm run build
+        run: npm install -g npm @mapbox/node-pre-gyp && npm install && npm run build
       - name: Typecheck ${{ matrix.project }}
         uses: gozala/typescript-error-reporter-action@v1.0.8
         with:
