@@ -1,4 +1,5 @@
 language: node_js
+dist: bionic
 
 services:
   - xvfb
@@ -31,14 +32,30 @@ env:
 addons:
   apt:
     packages:
-      # Fixes error while loading shared libraries: libgconf-2.so.4: cannot open shared object file: No such file or directory
-      # https://github.com/electron/electron/issues/1518
-      - libgconf-2-4
-      # Ensure chrome is the latest version
-      # https://stackoverflow.com/questions/57903415/travis-ci-chrome-62-instead-of-77
-      - dpkg
+      # These are required to run webkit
+    - libwoff1
+    - libopus0
+    - libwebp6
+    - libwebpdemux2
+    - libenchant1c2a
+    - libgudev-1.0-0
+    - libsecret-1-0
+    - libhyphen0
+    - libgdk-pixbuf2.0-0
+    - libegl1
+    - libgles2
+    - libevent-2.1-6
+    - libnotify4
+    - libxslt1.1
+    - libvpx5
+    # gstreamer and plugins to support video playback in WebKit.
+    - gstreamer1.0-gl
+    - gstreamer1.0-plugins-base
+    - gstreamer1.0-plugins-good
+    - gstreamer1.0-plugins-bad
+    # This is required to run chromium
+    - libgbm1
   chrome: stable
-  firefox: latest
 
 before_install:
   # prevents windows error: npm ERR! ... git-sh-setup: file not found
@@ -56,10 +73,10 @@ before_install:
   # only run jobs in packages that have changed since master in PR builds
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then export RUN_SINCE='--since master' ; fi
   # modules with pre-built binaries may not have deployed versions for bleeding-edge node so this lets us fall back to building from source
-  - npm install -g node-pre-gyp
+  - npm install -g @mapbox/node-pre-gyp
 
 script:
-  - npm run test:node -- $RUN_SINCE -- -- --timeout 10000 --bail
+  - npm run test:node -- $RUN_SINCE -- -- --timeout 10000 --bail -- --exit # TODO remove --exit https://mochajs.org/#-exit
 
 jobs:
   allow_failures:
@@ -107,13 +124,13 @@ jobs:
       name: firefox
       node_js: 'node'
       script:
-        - npm run test:browser -- $RUN_SINCE -- -- --bail --browsers FirefoxHeadless
+        - npm run test:browser -- $RUN_SINCE -- -- --bail -- --browser firefox
 
     - stage: test
       name: firefox webworker
       node_js: 'node'
       script:
-        - npm run test:webworker -- $RUN_SINCE -- -- --bail --browsers FirefoxHeadless --timeout 60000
+        - npm run test:webworker -- $RUN_SINCE -- -- --bail --timeout 60000 -- --browser firefox
 
     - stage: test
       name: electron-main
@@ -155,7 +172,7 @@ jobs:
       name: js-ipfs interface tests - node
       node_js: 'node'
       script:
-        - npm run test:interface:core -- $RUN_SINCE -- -- --bail -t node
+        - npm run test:interface:core -- $RUN_SINCE -- -- --bail -t node -- --exit # TODO remove --exit https://mochajs.org/#-exit
 
     - stage: test
       name: js-ipfs interface tests - chrome
@@ -173,13 +190,13 @@ jobs:
       name: js-ipfs interface tests - firefox
       node_js: 'node'
       script:
-        - npm run test:interface:core -- $RUN_SINCE -- -- --bail -t browser --browsers FirefoxHeadless
+        - npm run test:interface:core -- $RUN_SINCE -- -- --bail -t browser -- --browser firefox
 
     - stage: test
       name: js-ipfs interface tests - firefox webworker
       node_js: 'node'
       script:
-        - npm run test:interface:core -- $RUN_SINCE -- -- --bail -t webworker --browsers FirefoxHeadless --timeout 60000
+        - npm run test:interface:core -- $RUN_SINCE -- -- --bail -t webworker --timeout 60000 -- --browser firefox
 
     - stage: test
       name: js-ipfs interface tests - electron main
@@ -197,7 +214,7 @@ jobs:
       name: js-ipfs interface tests - ipfs-client - node
       node_js: 'node'
       script:
-        - npm run test:interface:client -- $RUN_SINCE -- -- --bail -t node
+        - npm run test:interface:client -- $RUN_SINCE -- -- --bail -t node -- --exit # TODO remove --exit https://mochajs.org/#-exit
 
     - stage: test
       name: js-ipfs interface tests - ipfs-client - chrome
@@ -215,13 +232,13 @@ jobs:
       name: js-ipfs interface tests - ipfs-client - firefox
       node_js: 'node'
       script:
-        - npm run test:interface:client -- $RUN_SINCE -- -- --bail -t browser --browsers FirefoxHeadless
+        - npm run test:interface:client -- $RUN_SINCE -- -- --bail -t browser -- --browser firefox
 
     - stage: test
       name: js-ipfs interface tests - ipfs-client - firefox webworker
       node_js: 'node'
       script:
-        - npm run test:interface:client -- $RUN_SINCE -- -- --bail -t webworker --browsers FirefoxHeadless --timeout 60000
+        - npm run test:interface:client -- $RUN_SINCE -- -- --bail -t webworker --timeout 60000 -- --browser firefox
 
     - stage: test
       name: js-ipfs interface tests - ipfs-client - electron main
@@ -239,7 +256,7 @@ jobs:
       name: http-api-client interface tests vs go-ipfs - node
       node_js: 'node'
       script:
-        - npm run test:interface:http-go -- $RUN_SINCE -- -- --bail -t node
+        - npm run test:interface:http-go -- $RUN_SINCE -- -- --bail -t node -- --exit # TODO remove --exit https://mochajs.org/#-exit
 
     - stage: test
       name: http-api-client interface tests vs go-ipfs - chrome
@@ -257,19 +274,19 @@ jobs:
       name: http-api-client interface tests vs go-ipfs - firefox
       node_js: 'node'
       script:
-        - npm run test:interface:http-go -- $RUN_SINCE -- -- --bail -t browser --browsers FirefoxHeadless
+        - npm run test:interface:http-go -- $RUN_SINCE -- -- --bail -t browser -- --browser firefox
 
     - stage: test
       name: http-api-client interface tests vs go-ipfs - firefox webworker
       node_js: 'node'
       script:
-        - npm run test:interface:http-go -- $RUN_SINCE -- -- --bail -t webworker --browsers FirefoxHeadless --timeout 60000
+        - npm run test:interface:http-go -- $RUN_SINCE -- -- --bail -t webworker --timeout 60000 -- --browser firefox
 
     - stage: test
       name: http-api-client interface tests vs js-ipfs - node
       node_js: 'node'
       script:
-        - npm run test:interface:http-js -- $RUN_SINCE -- -- --bail -t node
+        - npm run test:interface:http-js -- $RUN_SINCE -- -- --bail -t node -- --exit # TODO remove --exit https://mochajs.org/#-exit
 
     - stage: test
       name: http-api-client interface tests vs js-ipfs - chrome
@@ -287,13 +304,13 @@ jobs:
       name: http-api-client interface tests vs js-ipfs - firefox
       node_js: 'node'
       script:
-        - npm run test:interface:http-js -- $RUN_SINCE -- -- --bail -t browser --browsers FirefoxHeadless
+        - npm run test:interface:http-js -- $RUN_SINCE -- -- --bail -t browser --browser firefox
 
     - stage: test
       name: http-api-client interface tests vs js-ipfs - firefox webworker
       node_js: 'node'
       script:
-        - npm run test:interface:http-js -- $RUN_SINCE -- -- --bail -t webworker --browsers FirefoxHeadless --timeout 60000
+        - npm run test:interface:http-js -- $RUN_SINCE -- -- --bail -t webworker --timeout 60000 -- --browser firefox
 
     - stage: test
       name: http-api-client interface tests vs js-ipfs - electron main
@@ -317,7 +334,7 @@ jobs:
       name: ipfs-message-port-client interface tests - firefox
       node_js: 'node'
       script:
-        - npm run test:interface:message-port-client -- $RUN_SINCE -- -- --bail -t browser --browsers FirefoxHeadless
+        - npm run test:interface:message-port-client -- $RUN_SINCE -- -- --bail -t browser -- --browser firefox
 
     - stage: test
       name: examples
