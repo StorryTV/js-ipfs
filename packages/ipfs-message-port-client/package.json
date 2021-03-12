@@ -33,7 +33,7 @@
     "test": "echo 'Only interface tests live here'",
     "test:interface:message-port-client": "npm run prepare && aegir test -t browser -f ./test/interface-message-port-client.js",
     "lint": "aegir lint",
-    "prepare": "aegir build --no-bundle && aegir build -- --config ./test/util/webpack.config.js",
+    "prepare": "aegir build --no-bundle --no-types && aegir build --no-types -- --config ./test/util/webpack.config.js",
     "prepublishOnly": "aegir build && aegir build -- --config ./test/util/webpack.config.js",
     "coverage": "npx nyc -r html npm run test:node -- --bail",
     "clean": "rimraf ./dist",

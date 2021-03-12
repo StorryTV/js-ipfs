@@ -19,7 +19,7 @@ class Root {
   /**
    * @param {Context} context
    */
-  constructor ({ preload, gcLock, pin, block, ipld, options }) {
+  constructor ({ preload, gcLock, pin, block, blockService, options }) {
     const addAll = createAddAllAPI({
       preload,
       gcLock,
@@ -30,9 +30,9 @@ class Root {
 
     this.addAll = addAll
     this.add = createAddAPI({ addAll })
-    this.cat = createCatAPI({ ipld, preload })
-    this.get = createGetAPI({ ipld, preload })
-    this.ls = createLsAPI({ ipld, preload })
+    this.cat = createCatAPI({ blockService, preload })
+    this.get = createGetAPI({ blockService, preload })
+    this.ls = createLsAPI({ blockService, preload })
   }
 }
 

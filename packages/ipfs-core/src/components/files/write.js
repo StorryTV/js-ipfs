@@ -2,6 +2,9 @@
 
 const log = require('debug')('ipfs:mfs:write')
 const importer = require('ipfs-unixfs-importer')
+const {
+  decode
+} = require('@ipld/dag-pb')
 const stat = require('./stat')
 const mkdir = require('./mkdir')
 const addLink = require('./utils/add-link')
@@ -108,7 +111,8 @@ const updateOrImport = async (context, path, source, destination, options) => {
       throw errCode(new Error(`cannot write to ${parent.name}: Not a directory`), 'ERR_NOT_A_DIRECTORY')
     }
 
-    const parentNode = await context.ipld.get(parent.cid)
+    const parentBlock = await context.blockService.get(parent.cid)
+    const prentNode = decode(parentBlock.data)
 
     const result = await addLink(context, {
       parent: parentNode,

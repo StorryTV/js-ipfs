@@ -20,7 +20,7 @@
   },
   "scripts": {
     "lint": "aegir lint",
-    "prepare": "aegir build --no-bundle",
+    "prepare": "aegir build --no-bundle --no-types",
     "test": "npm run test:node",
     "test:node": "aegir test -t node",
     "coverage": "nyc --reporter=text --reporter=lcov npm run test:node",

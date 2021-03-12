@@ -6,12 +6,12 @@ const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
 /**
  * @typedef {Object} Context
- * @property {import('.').IPLD} ipld
+ * @property {import('.').BlockService} blockService
  * @property {import('.').Preload} preload
  *
  * @param {Context} context
  */
-module.exports = function ({ ipld, preload }) {
+module.exports = function ({ blockService, preload }) {
   /**
    * Returns content of the file addressed by a valid IPFS Path or CID.
    *
@@ -27,7 +27,7 @@ module.exports = function ({ ipld, preload }) {
       preload(pathComponents[0])
     }
 
-    const file = await exporter(ipfsPath, ipld, options)
+    const file = await exporter(ipfsPath, blockService, options)
 
     // File may not have unixfs prop if small & imported with rawLeaves true
     if (file.unixfs && file.unixfs.type.includes('dir')) {

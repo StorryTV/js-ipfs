@@ -40,6 +40,7 @@ module.exports = ({ ipld, preload }) => {
    * @param {GetOptions & AbortOptions} [options]
    */
   async function get (multihash, options = {}) { // eslint-disable-line require-await
+    debugger
     let mh, cid
 
     try {

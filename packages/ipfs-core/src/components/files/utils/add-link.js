@@ -1,9 +1,11 @@
 'use strict'
 
-const {
-  DAGLink,
-  DAGNode
-} = require('ipld-dag-pb')
+const dagPb = require('@ipld/dag-pb')
+// @ts-ignore
+const { sha256 } = require('multiformats/hashes/sha2')
+const Block = require('multiformats/block')
+//// @ts-ignore
+const IpldBlock = require('ipld-block')
 const CID = require('cids')
 const log = require('debug')('ipfs:mfs:core:utils:add-link')
 const UnixFS = require('ipfs-unixfs')
@@ -19,6 +21,7 @@ const errCode = require('err-code')
 const mc = require('multicodec')
 const mh = require('multihashing-async').multihash
 const last = require('it-last')
+const asLegacyCid = require('ipfs-core-utils/src/as-legacy-cid')
 
 const addLink = async (context, options) => {
   if (!options.parentCid && !options.parent) {
@@ -32,7 +35,8 @@ const addLink = async (context, options) => {
   if (!options.parent) {
     log(`Loading parent node ${options.parentCid}`)
 
-    options.parent = await context.ipld.get(options.parentCid)
+    const block = await context.blockService(options.parentCid)
+    options.parent = dagPb.decode(block.data)
   }
 
   if (!options.cid) {
@@ -91,8 +95,15 @@ const convertToShardedDirectory = async (context, options) => {
 }
 
 const addToDirectory = async (context, options) => {
-  options.parent.rmLink(options.name)
-  options.parent.addLink(new DAGLink(options.name, options.size, options.cid))
+  // Remove existing link if it exists
+  const parentLinks = options.parent.Links.filter((link) => {
+    link.name !== options.name
+  })
+  parentLinks.push({
+    Name: options.name,
+    Tsize: options.size,
+    Hash: options.cid
+  })
 
   const node = UnixFS.unmarshal(options.parent.Data)
 
@@ -100,21 +111,32 @@ const addToDirectory = async (context, options) => {
     // Update mtime if previously set
     node.mtime = new Date()
 
-    options.parent = new DAGNode(node.marshal(), options.parent.Links)
+    options.parent.Data = node.marshal()
+  }
+  options.parent = {
+    Data: options.parent.Data,
+    Links: parentLinks
   }
 
   const hashAlg = mh.names[options.hashAlg]
 
   // Persist the new parent DAGNode
-  const cid = await context.ipld.put(options.parent, mc.DAG_PB, {
-    cidVersion: options.cidVersion,
-    hashAlg,
-    onlyHash: !options.flush
-  })
+  const block = await Block.encode({
+      value: options.parent,
+      codec: dagPb,
+      // TODO vmx 2021-02-22: Add back support for other hashing algorithms
+      //hasher: hashAlg
+      hasher: sha256
+     })
+    // Create an old style CID
+    if (settings.flush) {
+      const legacyCid = new CID(block.cid.multihash.bytes)
+      await context.blockService.put(new IpldBlock(block.bytes, legacyCid))
+    }
 
   return {
     node: options.parent,
-    cid,
+    cid: block.cid,
     size: options.parent.size
   }
 }
@@ -125,7 +147,8 @@ const addToShardedDirectory = async (context, options) => {
   } = await addFileToShardedDirectory(context, options)
 
   const result = await last(shard.flush('', context.block))
-  const node = await context.ipld.get(result.cid)
+  const block = await context.blockService.get(asLegacyCid(result.cid))
+  const node = dagPb.decode(block.data)
 
   // we have written out the shard, but only one sub-shard will have been written so replace it in the original shard
   const oldLink = options.parent.Links
@@ -211,7 +234,8 @@ const addFileToShardedDirectory = async (context, options) => {
 
     // load sub-shard
     log(`Found subshard ${segment.prefix}`)
-    const subShard = await context.ipld.get(link.Hash)
+    const block = context.blockService.get(link.Hash)
+    const subShard = dagPb.decode(block.data)
 
     // subshard hasn't been loaded, descend to the next level of the HAMT
     if (!path[index]) {

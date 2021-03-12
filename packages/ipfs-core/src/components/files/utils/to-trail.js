@@ -8,7 +8,7 @@ const toTrail = async (context, path) => {
 
   const output = []
 
-  for await (const fsEntry of exporter.path(path, context.ipld)) {
+  for await (const fsEntry of exporter.path(path, context.blockService)) {
     output.push({
       name: fsEntry.name,
       cid: fsEntry.cid,

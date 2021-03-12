@@ -1,12 +1,15 @@
 'use strict'
 
 const isIpfs = require('is-ipfs')
-const CID = require('cids')
-const { DAGNode } = require('ipld-dag-pb')
+const CID = require('multiformats/cid').default
+// @ts-ignore
+const { decode } = require('@ipld/dag-pb')
 const { normalizeCidPath } = require('../../utils')
 const { Errors } = require('interface-datastore')
 const ERR_NOT_FOUND = Errors.notFoundError().code
+const asLegacyCid = require('ipfs-core-utils/src/as-legacy-cid')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
+
 
 const Format = {
   default: '<dst>',
@@ -15,11 +18,11 @@ const Format = {
 
 /**
  * @param {Object} config
- * @param {import('..').IPLD} config.ipld
+ * @param {import('..').BlockService} config.blockService
  * @param {import('..').Resolve} config.resolve
  * @param {import('..').Preload} config.preload
  */
-module.exports = function ({ ipld, resolve, preload }) {
+module.exports = function ({ blockService, resolve, preload }) {
   /**
    * Get links (references) from an object
    *
@@ -48,7 +51,7 @@ module.exports = function ({ ipld, resolve, preload }) {
     const paths = rawPaths.map(p => getFullPath(preload, p, options))
 
     for (const path of paths) {
-      yield * refsStream(resolve, ipld, path, options)
+      yield * refsStream(resolve, blockService, path, options)
     }
   }
 
@@ -76,7 +79,7 @@ function getFullPath (preload, ipfsPath, options) {
 }
 
 // Get a stream of refs at the given path
-async function * refsStream (resolve, ipld, path, options) {
+async function * refsStream (resolve, blockService, path, options) {
   // Resolve to the target CID of the path
   const resPath = await resolve(path)
   // path is /ipfs/<cid>
@@ -84,7 +87,7 @@ async function * refsStream (resolve, ipld, path, options) {
   const cid = parts[2]
 
   // Traverse the DAG, converting it into a stream
-  for await (const obj of objectStream(ipld, cid, options.maxDepth, options.unique)) {
+  for await (const obj of objectStream(blockService, cid, options.maxDepth, options.unique)) {
     // Root object will not have a parent
     if (!obj.parent) {
       continue
@@ -112,7 +115,7 @@ function formatLink (srcCid, dstCid, linkName, format) {
 }
 
 // Do a depth first search of the DAG, starting from the given root cid
-async function * objectStream (ipld, rootCid, maxDepth, uniqueOnly) { // eslint-disable-line require-await
+async function * objectStream (blockService, rootCid, maxDepth, uniqueOnly) { // eslint-disable-line require-await
   const seen = new Set()
 
   async function * traverseLevel (parent, depth) {
@@ -126,7 +129,7 @@ async function * objectStream (ipld, rootCid, maxDepth, uniqueOnly) { // eslint-
     // Get this object's links
     try {
       // Look at each link, parent and the new depth
-      for (const link of await getLinks(ipld, parent.cid)) {
+      for (const link of await getLinks(blockService, parent.cid)) {
         yield {
           parent: parent,
           node: link,
@@ -151,14 +154,11 @@ async function * objectStream (ipld, rootCid, maxDepth, uniqueOnly) { // eslint-
   yield * traverseLevel({ cid: rootCid }, 0)
 }
 
-// Fetch a node from IPLD then get all its links
-async function getLinks (ipld, cid) {
-  const node = await ipld.get(new CID(cid))
-
-  if (DAGNode.isDAGNode(node)) {
-    return node.Links.map(({ Name, Hash }) => ({ name: Name, cid: new CID(Hash) }))
-  }
-
+// Fetch a node from the BlockService then get all its links
+async function getLinks (blockService, cid) {
+  const block = await blockService.get(asLegacyCid(CID.parse(cid)))
+  //const node = asLegacyCid(decode(block.data))
+  const node = decode(block.data)
   return getNodeLinks(node)
 }
 
@@ -166,10 +166,15 @@ async function getLinks (ipld, cid) {
 function getNodeLinks (node, path = '') {
   let links = []
   for (const [name, value] of Object.entries(node)) {
-    if (CID.isCID(value)) {
+    const cid = CID.asCID(value)
+    if (cid) {
       links.push({
         name: path + name,
-        cid: value
+        // TODO vmx 2021-02-22: Check if `asLegacyCid` is also used on objects
+        // or only on CIDs. If it's only used on CIDs, its code can be
+        // simplified.
+        //cid: asLegacyCid(cid)
+        cid
       })
     } else if (typeof value === 'object') {
       links = links.concat(getNodeLinks(value, path + name + '/'))

@@ -5,7 +5,9 @@ const toMfsPath = require('./utils/to-mfs-path')
 const exporter = require('ipfs-unixfs-exporter')
 const log = require('debug')('ipfs:mfs:stat')
 const errCode = require('err-code')
+const mc = require('multicodec')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
+const asLegacyCid = require('ipfs-core-utils/src/as-legacy-cid')
 
 const defaultOptions = {
   withLocal: false,
@@ -14,7 +16,7 @@ const defaultOptions = {
 
 /**
  * @param {Object} context
- * @param {import('..').IPLD} context.ipld
+ * @param {import('..').BlockService} context.blockService
  */
 module.exports = (context) => {
   /**
@@ -39,7 +41,7 @@ module.exports = (context) => {
     let file
 
     try {
-      file = await exporter(exportPath, context.ipld)
+      file = await exporter(exportPath, context.blocks)
     } catch (err) {
       if (err.code === 'ERR_NOT_FOUND') {
         throw errCode(new Error(`${path} does not exist`), 'ERR_NOT_FOUND')
@@ -48,11 +50,11 @@ module.exports = (context) => {
       throw err
     }
 
-    if (!statters[file.cid.codec]) {
-      throw new Error(`Cannot stat codec ${file.cid.codec}`)
+    if (!statters[file.cid.code]) {
+      throw new Error(`Cannot stat codec ${mc.getNameFromCode(file.cid.code)}`)
     }
 
-    return statters[file.cid.codec](file)
+    return statters[file.cid.code](file)
   }
 
   return withTimeoutOption(mfsStat)
@@ -64,9 +66,9 @@ const statters = {
    * @param {any} file
    * @returns {Stat}
    */
-  raw: (file) => {
+  [mc.RAW]: (file) => {
     return {
-      cid: file.cid,
+      cid: asLegacyCid(file.cid),
       size: file.node.length,
       cumulativeSize: file.node.length,
       blocks: 0,
@@ -80,14 +82,14 @@ const statters = {
    * @param {any} file
    * @returns {Stat}
    */
-  'dag-pb': (file) => {
+  [mc.DAG_PB]: (file) => {
     const blocks = file.node.Links.length
     const size = file.node.size
     const cumulativeSize = file.node.size
 
     /** @type {Stat} */
     const output = {
-      cid: file.cid,
+      cid: asLegacyCid(file.cid),
       type: 'file',
       size: size,
       cumulativeSize: cumulativeSize,
@@ -129,11 +131,11 @@ const statters = {
    * @param {any} file
    * @returns {Stat}
    */
-  'dag-cbor': (file) => {
+  [mc.DAG_CBOR]: (file) => {
     // @ts-ignore - This is incompatible with Stat object
     // @TODO - https://github.com/ipfs/js-ipfs/issues/3325
     return {
-      cid: file.cid,
+      cid: asLegacyCid(file.cid),
       local: undefined,
       sizeLocal: undefined,
       withLocality: false
@@ -143,9 +145,9 @@ const statters = {
    * @param {any} file
    * @returns {Stat}
    */
-  identity: (file) => {
+  [mc.IDENTITY]: (file) => {
     return {
-      cid: file.cid,
+      cid: asLegacyCid(file.cid),
       size: file.node.digest.length,
       cumulativeSize: file.node.digest.length,
       blocks: 0,

@@ -1,8 +1,10 @@
 'use strict'
 
-const {
-  DAGNode
-} = require('ipld-dag-pb')
+const dagPb = require('@ipld/dag-pb')
+const { sha256 } = require('multiformats/hashes/sha2')
+const Block = require('multiformats/block')
+const IpldBlock = require('ipld-block')
+const CID = require('cids')
 const Bucket = require('hamt-sharding/src/bucket')
 const DirSharded = require('ipfs-unixfs-importer/src/dir-sharded')
 const log = require('debug')('ipfs:mfs:core:utils:hamt-utils')
@@ -24,18 +26,29 @@ const updateHamtDirectory = async (context, links, bucket, options) => {
     mtime: node.mtime
   })
 
-  const hashAlg = mh.names[options.hashAlg]
-  const parent = new DAGNode(dir.marshal(), links)
-  const cid = await context.ipld.put(parent, mc.DAG_PB, {
-    cidVersion: options.cidVersion,
-    hashAlg,
-    onlyHash: !options.flush
+  //const hashAlg = mh.names[options.hashAlg]
+  const parent = dagPb.prepare({
+    Data: dir.marshal(),
+    Links: links
   })
+  // TODO vmx 2021-03-04: Check if the CID version matters
+  const parentBlock = await Block.encode({
+    value: parent,
+    codec: dagPb,
+    // TODO vmx 2021-03-04: Check if support for other hash algs is needed
+    hasher: sha256
+  })
+
+  if (options.flush) {
+    const legacyCid = new CID(parentBlock.cid.multihash.bytes)
+    await context.blockService.put(new IpldBlock(parentBlock.bytes, legacyCid))
+  }
 
   return {
     node: parent,
-    cid,
-    size: parent.size
+    cid: parentBlock.cid,
+    // TODO vmx 2021-03-04: double check that it is the size we want here
+    size: parentBlock.bytes.length
   }
 }
 
@@ -135,7 +148,8 @@ const generatePath = async (context, fileName, rootNode) => {
 
     // found subshard
     log(`Found subshard ${segment.prefix}`)
-    const node = await context.ipld.get(link.Hash)
+    const block = await context.blockService.get(link.Hash)
+    const node = dagPb.decode(block.data)
 
     // subshard hasn't been loaded, descend to the next level of the HAMT
     if (!path[i + 1]) {

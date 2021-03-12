@@ -7,12 +7,12 @@ const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
 /**
  * @typedef {Object} Context
- * @property {import('.').IPLD} ipld
+ * @property {import('.').BlockService} blockService
  * @property {import('.').Preload} preload
  *
  * @param {Context} context
  */
-module.exports = function ({ ipld, preload }) {
+module.exports = function ({ blockService, preload }) {
   /**
    * Lists a directory from IPFS that is addressed by a valid IPFS Path.
    *
@@ -21,6 +21,7 @@ module.exports = function ({ ipld, preload }) {
    * @returns {AsyncIterable<import('ipfs-core-types/src/files').IPFSEntry>}
    */
   async function * ls (ipfsPath, options = {}) {
+    console.log('vmx: components: ls: ipfspath:', ipfsPath, 'codec' in ipfsPath)
     const path = normalizeCidPath(ipfsPath)
     const recursive = options.recursive
     const pathComponents = path.split('/')
@@ -29,7 +30,7 @@ module.exports = function ({ ipld, preload }) {
       preload(pathComponents[0])
     }
 
-    const file = await exporter(ipfsPath, ipld, options)
+    const file = await exporter(ipfsPath, blockService, options)
 
     if (!file.unixfs) {
       throw errCode(new Error('dag node was not a UnixFS node'), 'ERR_NOT_UNIXFS')
@@ -42,7 +43,7 @@ module.exports = function ({ ipld, preload }) {
 
     if (file.unixfs.type.includes('dir')) {
       if (recursive) {
-        for await (const child of exporter.recursive(file.cid, ipld, options)) {
+        for await (const child of exporter.recursive(file.cid, blockService, options)) {
           if (file.cid.toBaseEncodedString() === child.cid.toBaseEncodedString()) {
             continue
           }

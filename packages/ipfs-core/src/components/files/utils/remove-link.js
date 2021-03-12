@@ -1,9 +1,9 @@
 'use strict'
 
-const {
-  DAGNode,
-  DAGLink
-} = require('ipld-dag-pb')
+const dagPb = require('@ipld/dag-pb')
+const { sha256 } = require('multiformats/hashes/sha2')
+const Block = require('multiformats/block')
+const IpldBlock = require('ipld-block')
 const CID = require('cids')
 const log = require('debug')('ipfs:mfs:core:utils:remove-link')
 const UnixFS = require('ipfs-unixfs')
@@ -27,7 +27,8 @@ const removeLink = async (context, options) => {
   if (!options.parent) {
     log(`Loading parent node ${options.parentCid}`)
 
-    options.parent = await context.ipld.get(options.parentCid)
+    const block = await context.blockService.get(options.parentCid)
+    options.parent = dagPb.decode(block.data)
   }
 
   if (!options.name) {
@@ -48,14 +49,24 @@ const removeLink = async (context, options) => {
 }
 
 const removeFromDirectory = async (context, options) => {
-  const hashAlg = mh.names[options.hashAlg]
+  //const hashAlg = mh.names[options.hashAlg]
 
-  options.parent.rmLink(options.name)
-  const cid = await context.ipld.put(options.parent, mc.DAG_PB, {
-    cidVersion: options.cidVersion,
-    hashAlg
+  // Remove existing link if it exists
+  options.parent.Links = options.parent.Links.filter((link) => {
+    link.name !== options.name
+  })
+  // TODO vmx 2021-03-04: Check if the CID version matters
+  const parentBlock = await Block.encode({
+    value: options.parent,
+    codec: dagPb,
+    // TODO vmx 2021-03-04: Check if support for other hash algs is needed
+    hasher: sha256
   })
 
+  const legacyCid = new CID(parentBlock.cid.multihash.bytes)
+  await context.blockService.put(new IpldBlock(parentBlock.bytes, legacyCid))
+
+  const cid = parentBlock.cid
   log(`Updated regular directory ${cid}`)
 
   return {
@@ -127,16 +138,24 @@ const updateShard = async (context, positions, child, options) => {
 
   log(`Updating shard ${prefix} with name ${newName}`)
 
-  const size = DAGNode.isDAGNode(result.node) ? result.node.size : result.node.Tsize
+  // TODO vmx 2021-03-04: This might be wrong, does every node have a `Tsize`?
+  const size = result.node.Tsize
 
   return updateShardParent(context, bucket, node, prefix, newName, size, result.cid, options)
 }
 
 const updateShardParent = (context, bucket, parent, oldName, newName, size, cid, options) => {
-  parent.rmLink(oldName)
-  parent.addLink(new DAGLink(newName, size, cid))
+  // Remove existing link if it exists
+  const parentLinks = parent.Links.filter((link) => {
+    link.name !== oldName
+  })
+  parentLinks.push({
+    Name: newName,
+    Tsize: size,
+    Hash: cid
+  })
 
-  return updateHamtDirectory(context, parent.Links, bucket, options)
+  return updateHamtDirectory(context, parentLinks, bucket, options)
 }
 
 module.exports = removeLink

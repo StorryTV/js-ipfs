@@ -51,7 +51,6 @@ const wrap = ({
 
 const defaultOptions = {
   repoOwner: true,
-  ipld: null,
   repo: null
 }
 
@@ -93,7 +92,6 @@ function createMfs (options) {
 
 /**
  * @param {Object} context
- * @param {import('..').IPLD} context.ipld
  * @param {import('..').Block} context.block
  * @param {import('..').BlockService} context.blockService
  * @param {import('..').Repo} context.repo
@@ -101,9 +99,8 @@ function createMfs (options) {
  * @param {import('..').Options} context.options
  * @returns {MFS}
  */
-module.exports = ({ ipld, block, blockService, repo, preload, options: constructorOptions }) => {
+module.exports = ({ block, blockService, repo, preload, options: constructorOptions }) => {
   const methods = createMfs({
-    ipld,
     block,
     blocks: blockService,
     datastore: repo.root,

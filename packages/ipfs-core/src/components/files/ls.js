@@ -64,7 +64,7 @@ module.exports = (context) => {
    */
   async function * mfsLs (path, options = {}) {
     const mfsPath = await toMfsPath(context, path, options)
-    const fsDir = await exporter(mfsPath.mfsPath, context.ipld)
+    const fsDir = await exporter(mfsPath.mfsPath, context.blocks)
 
     // single file/node
     if (!fsDir.unixfs || !fsDir.unixfs.type.includes('directory')) {

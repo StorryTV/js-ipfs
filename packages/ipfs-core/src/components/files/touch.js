@@ -9,9 +9,17 @@ const toTrail = require('./utils/to-trail')
 const addLink = require('./utils/add-link')
 const updateTree = require('./utils/update-tree')
 const updateMfsRoot = require('./utils/update-mfs-root')
-const { DAGNode } = require('ipld-dag-pb')
+const IpldBlock = require('ipld-block')
+const dagPb = require('@ipld/dag-pb')
+// @ts-ignore
+const Block = require('multiformats/block')
+// @ts-ignore
+const { sha256 } = require('multiformats/hashes/sha2')
+// NOTE vmx 2021-02-19: Not importet as CID to make the type checker happy
+const CID = require('cids')
 const mc = require('multicodec')
 const mh = require('multihashing-async').multihash
+const asLegacyCid = require('ipfs-core-utils/src/as-legacy-cid')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 
 const defaultOptions = {
@@ -65,12 +73,18 @@ module.exports = (context) => {
         type: 'file',
         mtime: settings.mtime
       })
-      node = new DAGNode(metadata.marshal())
-      updatedCid = await context.ipld.put(node, mc.DAG_PB, {
-        cidVersion: settings.cidVersion,
-        hashAlg: mh.names['sha2-256'],
-        onlyHash: !settings.flush
+      node = dagPb.prepare({ Data: metadata.marshal() })
+      const block = await Block.encode({
+        value: node,
+        codec: dagPb,
+        hasher: sha256
       })
+      // Create an old style CID
+      updatedCid = block.cid
+      if (settings.flush) {
+        const legacyCid = new CID(block.cid.multihash.bytes)
+        await context.blockService.put(new IpldBlock(block.bytes, legacyCid))
+      }
     } else {
       if (cid.codec !== 'dag-pb') {
         throw errCode(new Error(`${path} was not a UnixFS node`), 'ERR_NOT_UNIXFS')
@@ -78,35 +92,48 @@ module.exports = (context) => {
 
       cidVersion = cid.version
 
-      node = await context.ipld.get(cid)
+      const block = await context.blockService(cid)
+      node = dagPb.decode(block.data)
 
       const metadata = UnixFS.unmarshal(node.Data)
       metadata.mtime = settings.mtime
 
-      node = new DAGNode(metadata.marshal(), node.Links)
-
-      updatedCid = await context.ipld.put(node, mc.DAG_PB, {
-        cidVersion: cid.version,
-        hashAlg: mh.names['sha2-256'],
-        onlyHash: !settings.flush
+      node = dagPb.prepare({
+          Data: metadata.marshal(),
+          Links: node.Links
       })
+
+      const updatedBlock = await Block.encode({
+        value: node,
+        codec: dagPb,
+        hasher: sha256
+      })
+      updatedCid = updatedBlock.cid
+      if (settings.flush) {
+        const legacyCid = new CID(updatedBlock.cid.multihash.bytes)
+        await context.blockService.put(new IpldBlock(updatedBlock.bytes, legacyCid))
+      }
     }
 
     const trail = await toTrail(context, mfsDirectory)
     const parent = trail[trail.length - 1]
-    const parentNode = await context.ipld.get(parent.cid)
+    const parentBlock = await context.blockService.get(asLegacyCid(parent.cid))
+    const parentNode = dagPb.decode(preantBlock.data)
 
     const result = await addLink(context, {
       parent: parentNode,
       name: name,
       cid: updatedCid,
-      size: node.serialize().length,
+      size: dagPb.encode(node).length,
       flush: settings.flush,
       shardSplitThreshold: settings.shardSplitThreshold,
+      // TODO vmx 2021-02-23: Check if the hash alg is always hardcoded
       hashAlg: 'sha2-256',
       cidVersion
     })
 
+    // TODO vmx 2021-02-22: If there are errors about the CID version, do the
+    // conversion to the correct CID version here, based on `cidVersion`.
     parent.cid = result.cid
 
     // update the tree with the new child

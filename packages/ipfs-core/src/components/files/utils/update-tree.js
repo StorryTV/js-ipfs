@@ -2,6 +2,9 @@
 
 const log = require('debug')('ipfs:mfs:utils:update-tree')
 const addLink = require('./add-link')
+const {
+  decode
+} = require('@ipld/dag-pb')
 
 const defaultOptions = {
   shardSplitThreshold: 1000
@@ -17,7 +20,8 @@ const updateTree = async (context, trail, options) => {
   let index = 0
   let child
 
-  for await (const node of context.ipld.getMany(trail.map(node => node.cid))) {
+  for await (const block of context.blockService.getMany(trail.map(node => node.cid))) {
+    const node = decode(block.data)
     const cid = trail[index].cid
     const name = trail[index].name
     index++
@@ -26,7 +30,8 @@ const updateTree = async (context, trail, options) => {
       child = {
         cid,
         name,
-        size: node.size
+        // TODO vmx 2021-03-04: Check if the size should be 0 or the actual size
+        size: block.data.length
       }
 
       continue

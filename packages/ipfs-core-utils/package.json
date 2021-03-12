@@ -30,12 +30,13 @@
     "test:electron-renderer": "aegir test -t electron-renderer",
     "test:node": "aegir test -t node",
     "lint": "aegir lint",
-    "prepare": "aegir build --no-bundle",
+    "prepare": "aegir build --no-bundle --no-types",
     "clean": "rimraf ./dist",
     "dep-check": "aegir dep-check -i rimraf -i ipfs-core-types"
   },
   "license": "MIT",
   "dependencies": {
+    "multiformats": "^4.0.0",
     "any-signal": "^2.1.2",
     "blob-to-it": "^1.0.1",
     "browser-readablestream-to-it": "^1.0.1",

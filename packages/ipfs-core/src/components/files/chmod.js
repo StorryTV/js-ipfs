@@ -9,7 +9,13 @@ const toTrail = require('./utils/to-trail')
 const addLink = require('./utils/add-link')
 const updateTree = require('./utils/update-tree')
 const updateMfsRoot = require('./utils/update-mfs-root')
-const { DAGNode } = require('ipld-dag-pb')
+const dagPb = require('@ipld/dag-pb')
+// @ts-ignore
+const { sha256 } = require('multiformats/hashes/sha2')
+const Block = require('multiformats/block')
+// @ts-ignore
+const IpldBlock = require('ipld-block')
+const CID = require('cids')
 const mc = require('multicodec')
 const mh = require('multihashing-async').multihash
 const { pipe } = require('it-pipe')
@@ -193,10 +199,14 @@ module.exports = (context) => {
       // but do not reimport files, only manipulate dag-pb nodes
       const root = await pipe(
         async function * () {
-          for await (const entry of exporter.recursive(cid, context.ipld)) {
-            let node = await context.ipld.get(entry.cid)
+          for await (const entry of exporter.recursive(cid, context.blockService)) {
+            const block = await context.blockService(entry.cid)
+            let node = dagPb.decode(block.data)
             entry.unixfs.mode = calculateMode(mode, entry.unixfs)
-            node = new DAGNode(entry.unixfs.marshal(), node.Links)
+            node = prepare({
+              Data: entry.unixfs.marshal(),
+              Links: node.Links
+            })
 
             yield {
               path: entry.path,
@@ -234,20 +244,32 @@ module.exports = (context) => {
       return
     }
 
-    let node = await context.ipld.get(cid)
+    const block = await context.blockService.get(cid)
+    let node = dagPb.decode(block.data)
     const metadata = UnixFS.unmarshal(node.Data)
     metadata.mode = calculateMode(mode, metadata)
-    node = new DAGNode(metadata.marshal(), node.Links)
-
-    const updatedCid = await context.ipld.put(node, mc.DAG_PB, {
-      cidVersion: cid.version,
-      hashAlg: mh.names[opts.hashAlg || defaultOptions.hashAlg],
-      onlyHash: !opts.flush
+    node = prepare({
+      Data: metadata.marshal(),
+      Links: node.Links
     })
+
+
+    const updatedBlock = await Block.encode({
+      value: node,
+      codec: dagPb,
+      // TODO vmx 2021-02-22: Add back support for other hashing algorithms
+      hasher: sha256
+    })
+    updatedCid = updatedBlock.cid
+    if (settings.flush) {
+      const legacyCid = new CID(updatedBlock.cid.multihash.bytes)
+      await context.blockService.put(new IpldBlock(updatedBlock.bytes, legacyCid))
+    }
 
     const trail = await toTrail(context, mfsDirectory)
     const parent = trail[trail.length - 1]
-    const parentNode = await context.ipld.get(parent.cid)
+    const parentBlock = await context.blockService(parent.cid)
+    const parentNode = dagPb.decode(parentBlock.data)
 
     const result = await addLink(context, {
       parent: parentNode,

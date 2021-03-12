@@ -39,7 +39,7 @@
   },
   "scripts": {
     "lint": "aegir lint",
-    "prepare": "aegir build --no-bundle",
+    "prepare": "aegir build --no-bundle --no-types",
     "prepublishOnly": "aegir build",
     "test": "aegir test",
     "test:node": "aegir test -t node",
@@ -53,6 +53,7 @@
     "dep-check": "aegir dep-check -i interface-ipfs-core -i ipfs-core-types -i abort-controller"
   },
   "dependencies": {
+    "@ipld/dag-pb": "0.0.1",
     "abort-controller": "^3.0.0",
     "array-shuffle": "^2.0.0",
     "bignumber.js": "^9.0.0",
@@ -73,9 +74,9 @@
     "ipfs-core-types": "^0.3.0",
     "ipfs-core-utils": "^0.7.1",
     "ipfs-repo": "^8.0.0",
-    "ipfs-unixfs": "^2.0.3",
-    "ipfs-unixfs-exporter": "^3.0.4",
-    "ipfs-unixfs-importer": "^5.0.0",
+    "ipfs-unixfs": "https://gitpkg.now.sh/ipfs/js-ipfs-unixfs/packages/ipfs-unixfs?js-dag-pb",
+    "ipfs-unixfs-exporter": "https://gitpkg.now.sh/ipfs/js-ipfs-unixfs/packages/ipfs-unixfs-exporter?js-dag-pb",
+    "ipfs-unixfs-importer": "https://gitpkg.now.sh/ipfs/js-ipfs-unixfs/packages/ipfs-unixfs-importer?js-dag-pb",
     "ipfs-utils": "^6.0.1",
     "ipld": "^0.28.0",
     "ipld-block": "^0.11.0",

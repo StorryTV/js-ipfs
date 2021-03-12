@@ -6,6 +6,7 @@ const { parseChunkerString } = require('./utils')
 const { pipe } = require('it-pipe')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
 const mergeOptions = require('merge-options').bind({ ignoreUndefined: true })
+const asLegacyCid = require('ipfs-core-utils/src/as-legacy-cid')
 
 /**
  * @typedef {Object} Context
@@ -124,7 +125,7 @@ function transformFile (opts) {
 
       yield {
         path,
-        cid,
+        cid: asLegacyCid(cid),
         size: file.size,
         mode: file.unixfs && file.unixfs.mode,
         mtime: file.unixfs && file.unixfs.mtime

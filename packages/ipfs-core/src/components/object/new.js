@@ -18,6 +18,7 @@ module.exports = ({ ipld, preload }) => {
    * @returns {Promise<CID>}
    */
   async function _new (options = {}) {
+    debugger
     let data
 
     if (options.template) {

@@ -4,6 +4,7 @@ const exporter = require('ipfs-unixfs-exporter')
 const errCode = require('err-code')
 const { normalizeCidPath, mapFile } = require('../utils')
 const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
+const asLegacyCid = require('ipfs-core-utils/src/as-legacy-cid')
 
 /**
  * @typedef {Object} Context
@@ -12,7 +13,7 @@ const withTimeoutOption = require('ipfs-core-utils/src/with-timeout-option')
  *
  * @param {Context} context
  */
-module.exports = function ({ ipld, preload }) {
+module.exports = function ({ blockService, preload }) {
   /**
    * Fetch a file or an entire directory tree from IPFS that is addressed by a
    * valid IPFS Path.
@@ -34,11 +35,16 @@ module.exports = function ({ ipld, preload }) {
       preload(pathComponents[0])
     }
 
-    for await (const file of exporter.recursive(ipfsPath, ipld, options)) {
-      yield mapFile(file, {
+    for await (const file of exporter.recursive(ipfsPath, blockService, options)) {
+      const result = mapFile(file, {
         ...options,
         includeContent: true
       })
+
+      let legacyResult = result
+      legacyResult.cid = asLegacyCid(result.cid)
+
+      yield legacyResult
     }
   }
 

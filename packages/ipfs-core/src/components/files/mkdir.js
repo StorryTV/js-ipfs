@@ -75,7 +75,7 @@ module.exports = (context) => {
       const subPath = `/ipfs/${root}/${subPathComponents.join('/')}`
 
       try {
-        parent = await exporter(subPath, context.ipld)
+        parent = await exporter(subPath, context.blockService)
         log(`${subPath} existed`)
         log(`${subPath} had children ${parent.node.Links.map(link => link.Name)}`)
 

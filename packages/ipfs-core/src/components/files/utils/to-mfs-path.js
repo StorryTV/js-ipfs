@@ -4,7 +4,7 @@ const loadMfsRoot = require('./with-mfs-root')
 const toPathComponents = require('./to-path-components')
 const exporter = require('ipfs-unixfs-exporter')
 const errCode = require('err-code')
-const CID = require('cids')
+const CID = require('multiformats/cid')
 
 const IPFS_PREFIX = 'ipfs'
 
@@ -12,10 +12,10 @@ const toMfsPath = async (context, path, options) => {
   const outputArray = Array.isArray(path)
   let paths = Array.isArray(path) ? path : [path]
   const root = await loadMfsRoot(context, options)
-
   paths = paths.map(path => {
-    if (CID.isCID(path)) {
-      path = `/ipfs/${path}`
+    const cid = CID.asCID(path)
+    if (cid) {
+      path = `/ipfs/${cid}`
     }
 
     path = (path || '').trim()
@@ -81,7 +81,7 @@ const toMfsPath = async (context, path, options) => {
       const cidPath = path.type === 'mfs' ? path.mfsPath : path.path
 
       try {
-        const res = await exporter(cidPath, context.ipld)
+        const res = await exporter(cidPath, context.blocks)
 
         path.cid = res.cid
         path.mfsPath = `/ipfs/${res.path}`
