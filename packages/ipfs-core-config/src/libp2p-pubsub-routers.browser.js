@@ -1,12 +1,13 @@
-import { GossipSub } from '@chainsafe/libp2p-gossipsub'
+import { gossipsub } from '@chainsafe/libp2p-gossipsub'
 
-/** @typedef {import('@libp2p/interfaces/pubsub').PubSub} PubSub */
+/** @typedef {import('@libp2p/interface-pubsub').PubSub} PubSub */
 
-/** @type {() => Record<string, PubSub>}>} */
+/** @type {() => Record<string, (components: any) => PubSub>}>} */
 export const routers = () => ({
-  gossipsub: new GossipSub({
-    allowPublishToZeroPeers: true,
+  gossipsub: gossipsub({
     fallbackToFloodsub: true,
-    emitSelf: true
+    emitSelf: true,
+    maxInboundStreams: 64,
+    maxOutboundStreams: 128
   })
 })

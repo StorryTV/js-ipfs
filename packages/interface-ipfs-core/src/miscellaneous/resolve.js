@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import isIpfs from 'is-ipfs'
+import * as isIpfs from 'is-ipfs'
 import { nanoid } from 'nanoid'
 import { base64url } from 'multiformats/bases/base64'
 import { expect } from 'aegir/chai'
@@ -94,15 +94,24 @@ export function testResolve (factory, options) {
 
     // Test resolve turns /ipns/domain.com into /ipfs/QmHash
     it('should resolve an IPNS DNS link', async function () {
-      // @ts-expect-error this is mocha
       this.retries(3)
-      const resolved = await ipfs.resolve('/ipns/ipfs.io')
+      const domain = 'ipfs.io'
 
-      expect(isIpfs.ipfsPath(resolved)).to.be.true()
+      try {
+        const resolved = await ipfs.resolve(`/ipns/${domain}`)
+
+        expect(isIpfs.ipfsPath(resolved)).to.be.true()
+      } catch (/** @type {any} */ err) {
+        // happens when running tests offline
+        if (err.message.includes(`ECONNREFUSED ${domain}`)) {
+          return this.skip()
+        }
+
+        throw err
+      }
     })
 
     it('should resolve IPNS link recursively by default', async function () {
-      // @ts-expect-error this is mocha
       this.timeout(20 * 1000)
       // webworkers are not dialable because webrtc is not available
       const node = (await factory.spawn({
@@ -128,7 +137,6 @@ export function testResolve (factory, options) {
     })
 
     it('should resolve IPNS link non-recursively if recursive==false', async function () {
-      // @ts-expect-error this is mocha
       this.timeout(20 * 1000)
       // webworkers are not dialable because webrtc is not available
       const node = (await factory.spawn({

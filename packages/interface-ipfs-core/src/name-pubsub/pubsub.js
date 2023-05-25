@@ -25,7 +25,7 @@ const daemonsOptions = {
 
 /**
  * @typedef {import('ipfsd-ctl').Factory} Factory
- * @typedef {import('@libp2p/interfaces/pubsub').Message} Message
+ * @typedef {import('@libp2p/interface-pubsub').Message} Message
  * @typedef {import('@libp2p/interfaces/events').EventHandler<Message>} EventHandler
  */
 
@@ -82,13 +82,20 @@ export function testPubsub (factory, options) {
     after(() => factory.clean())
 
     it('should publish and then resolve correctly', async function () {
-      // @ts-expect-error this is mocha
       this.timeout(80 * 1000)
 
       const routingKey = ipns.peerIdToRoutingKey(idA.id)
       const topic = `${namespace}${uint8ArrayToString(routingKey, 'base64url')}`
 
       await nodeB.pubsub.subscribe(topic, () => {})
+
+      // wait for nodeA to see nodeB's subscription
+      await waitFor(async () => {
+        const peers = await nodeA.pubsub.peers(topic)
+
+        return peers.map(p => p.toString()).includes(idB.id.toString())
+      })
+
       await nodeA.name.publish(ipfsRef, { resolve: false })
       await delay(1000) // guarantee record is written
 
@@ -98,7 +105,6 @@ export function testPubsub (factory, options) {
     })
 
     it('should self resolve, publish and then resolve correctly', async function () {
-      // @ts-expect-error this is mocha
       this.timeout(6000)
       const emptyDirCid = '/ipfs/QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn'
       const { path } = await nodeA.add(uint8ArrayFromString('pubsub records'))
@@ -120,13 +126,12 @@ export function testPubsub (factory, options) {
     })
 
     it('should handle event on publish correctly', async function () {
-      // @ts-expect-error this is mocha
       this.timeout(80 * 1000)
 
       const testAccountName = 'test-account'
 
       /**
-       * @type {import('@libp2p/interfaces/pubsub').Message}
+       * @type {import('@libp2p/interface-pubsub').Message}
        */
       let publishedMessage
 
@@ -152,6 +157,14 @@ export function testPubsub (factory, options) {
       const topic = `${namespace}${uint8ArrayToString(routingKey, 'base64url')}`
 
       await nodeB.pubsub.subscribe(topic, checkMessage)
+
+      // wait for nodeA to see nodeB's subscription
+      await waitFor(async () => {
+        const peers = await nodeA.pubsub.peers(topic)
+
+        return peers.map(p => p.toString()).includes(idB.id.toString())
+      })
+
       await nodeA.name.publish(ipfsRef, { resolve: false, key: testAccountName })
       await waitFor(alreadySubscribed)
 
@@ -162,8 +175,12 @@ export function testPubsub (factory, options) {
 
       const publishedMessageData = ipns.unmarshal(publishedMessage.data)
 
-      if (!publishedMessageData.pubKey) {
-        throw new Error('No public key found in message data')
+      if (publishedMessage.type !== 'signed') {
+        throw new Error('Message was not signed')
+      }
+
+      if (publishedMessageData.pubKey == null) {
+        throw new Error('Public key was missing from published message data')
       }
 
       const messageKey = publishedMessage.from

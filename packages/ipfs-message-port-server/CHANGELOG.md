@@ -3,6 +3,99 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+### [0.15.1](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.15.0...ipfs-message-port-server-v0.15.1) (2023-05-25)
+
+
+### Bug Fixes
+
+* add deprecation notice to readmes ([#4362](https://www.github.com/ipfs/js-ipfs/issues/4362)) ([7b79c1b](https://www.github.com/ipfs/js-ipfs/commit/7b79c1b8df5c818dc124b346ea28330455732d5c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.14.0 to ^0.14.1
+    * ipfs-message-port-protocol bumped from ^0.15.0 to ^0.15.1
+
+## [0.15.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.14.0...ipfs-message-port-server-v0.15.0) (2023-01-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* update multiformats to v11.x.x and related depenendcies (#4277)
+
+### Bug Fixes
+
+* update multiformats to v11.x.x and related depenendcies ([#4277](https://www.github.com/ipfs/js-ipfs/issues/4277)) ([521c84a](https://www.github.com/ipfs/js-ipfs/commit/521c84a958b04d61702577a5adce28519c1b2a3b))
+* use aegir to publish RCs ([#4284](https://www.github.com/ipfs/js-ipfs/issues/4284)) ([6d90cbf](https://www.github.com/ipfs/js-ipfs/commit/6d90cbf321a7dbf4b1084ba20f0c514dc08d8d0a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.13.0 to ^0.14.0
+    * ipfs-message-port-protocol bumped from ^0.14.0 to ^0.15.0
+
+## [0.14.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.13.1...ipfs-message-port-server-v0.14.0) (2022-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* ipfs is now bundled with libp2p@0.40.x which has different config
+
+### Features
+
+* upgrade libp2p to 0.40.x ([#4237](https://www.github.com/ipfs/js-ipfs/issues/4237)) ([0cee4a4](https://www.github.com/ipfs/js-ipfs/commit/0cee4a4c55767022584dcbade0b0b9b43326f9c9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.12.1 to ^0.13.0
+    * ipfs-message-port-protocol bumped from ^0.13.1 to ^0.14.0
+
+### [0.13.1](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.13.0...ipfs-message-port-server-v0.13.1) (2022-09-21)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.12.0 to ^0.12.1
+    * ipfs-message-port-protocol bumped from ^0.13.0 to ^0.13.1
+
+## [0.13.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.12.1...ipfs-message-port-server-v0.13.0) (2022-09-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* update to libp2p@0.38.x (#4151)
+
+### deps
+
+* update to libp2p@0.38.x ([#4151](https://www.github.com/ipfs/js-ipfs/issues/4151)) ([39dbf70](https://www.github.com/ipfs/js-ipfs/commit/39dbf708ec31b263115e44f420651fa4e056a89e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.11.0 to ^0.12.0
+    * ipfs-message-port-protocol bumped from ^0.12.0 to ^0.13.0
+
+### [0.12.1](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.12.0...ipfs-message-port-server-v0.12.1) (2022-06-22)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ipfs-core-types bumped from ^0.11.0 to ^0.11.1
+    * ipfs-message-port-protocol bumped from ^0.12.0 to ^0.12.1
+
 ## [0.12.0](https://www.github.com/ipfs/js-ipfs/compare/ipfs-message-port-server-v0.11.3...ipfs-message-port-server-v0.12.0) (2022-05-27)
 
 
@@ -124,7 +217,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# [0.10.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.4...ipfs-message-port-server@0.10.0) (2021-09-24)
+## [0.10.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.4...ipfs-message-port-server@0.10.0) (2021-09-24)
 
 
 ### Features
@@ -140,7 +233,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [0.9.4](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.3...ipfs-message-port-server@0.9.4) (2021-09-17)
+### [0.9.4](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.3...ipfs-message-port-server@0.9.4) (2021-09-17)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -148,7 +241,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [0.9.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.2...ipfs-message-port-server@0.9.3) (2021-09-17)
+### [0.9.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.2...ipfs-message-port-server@0.9.3) (2021-09-17)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -156,7 +249,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [0.9.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.1...ipfs-message-port-server@0.9.2) (2021-09-02)
+### [0.9.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.1...ipfs-message-port-server@0.9.2) (2021-09-02)
 
 
 ### Bug Fixes
@@ -167,7 +260,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [0.9.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.0...ipfs-message-port-server@0.9.1) (2021-08-25)
+### [0.9.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.9.0...ipfs-message-port-server@0.9.1) (2021-08-25)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -175,7 +268,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# [0.9.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.8.1...ipfs-message-port-server@0.9.0) (2021-08-11)
+## [0.9.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.8.1...ipfs-message-port-server@0.9.0) (2021-08-11)
 
 
 ### Features
@@ -191,7 +284,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-## [0.8.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.8.0...ipfs-message-port-server@0.8.1) (2021-07-30)
+### [0.8.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.8.0...ipfs-message-port-server@0.8.1) (2021-07-30)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -199,7 +292,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 
 
-# [0.8.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.3...ipfs-message-port-server@0.8.0) (2021-07-27)
+## [0.8.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.3...ipfs-message-port-server@0.8.0) (2021-07-27)
 
 
 ### Features
@@ -218,7 +311,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.7.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.2...ipfs-message-port-server@0.7.3) (2021-06-18)
+### [0.7.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.2...ipfs-message-port-server@0.7.3) (2021-06-18)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -226,7 +319,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.7.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.1...ipfs-message-port-server@0.7.2) (2021-06-05)
+### [0.7.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.1...ipfs-message-port-server@0.7.2) (2021-06-05)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -234,7 +327,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.7.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.0...ipfs-message-port-server@0.7.1) (2021-05-26)
+### [0.7.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.7.0...ipfs-message-port-server@0.7.1) (2021-05-26)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -242,7 +335,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-# [0.7.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.3...ipfs-message-port-server@0.7.0) (2021-05-10)
+## [0.7.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.3...ipfs-message-port-server@0.7.0) (2021-05-10)
 
 
 ### chore
@@ -260,7 +353,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.6.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.2...ipfs-message-port-server@0.6.3) (2021-03-10)
+### [0.6.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.2...ipfs-message-port-server@0.6.3) (2021-03-10)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -268,7 +361,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.6.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.1...ipfs-message-port-server@0.6.2) (2021-03-09)
+### [0.6.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.1...ipfs-message-port-server@0.6.2) (2021-03-09)
 
 
 ### Bug Fixes
@@ -279,7 +372,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.6.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.0...ipfs-message-port-server@0.6.1) (2021-02-02)
+### [0.6.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.6.0...ipfs-message-port-server@0.6.1) (2021-02-02)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -287,7 +380,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-# [0.6.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.5.0...ipfs-message-port-server@0.6.0) (2021-02-01)
+## [0.6.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.5.0...ipfs-message-port-server@0.6.0) (2021-02-01)
 
 
 ### chore
@@ -303,7 +396,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-# [0.5.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.3...ipfs-message-port-server@0.5.0) (2021-01-15)
+## [0.5.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.3...ipfs-message-port-server@0.5.0) (2021-01-15)
 
 
 ### Features
@@ -314,7 +407,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.4.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.2...ipfs-message-port-server@0.4.3) (2020-12-16)
+### [0.4.3](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.2...ipfs-message-port-server@0.4.3) (2020-12-16)
 
 
 ### Bug Fixes
@@ -326,7 +419,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.4.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.1...ipfs-message-port-server@0.4.2) (2020-11-25)
+### [0.4.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.1...ipfs-message-port-server@0.4.2) (2020-11-25)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -334,7 +427,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.4.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.0...ipfs-message-port-server@0.4.1) (2020-11-16)
+### [0.4.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.4.0...ipfs-message-port-server@0.4.1) (2020-11-16)
 
 
 ### Bug Fixes
@@ -345,7 +438,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-# [0.4.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.3.0...ipfs-message-port-server@0.4.0) (2020-11-09)
+## [0.4.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.3.0...ipfs-message-port-server@0.4.0) (2020-11-09)
 
 
 ### Bug Fixes
@@ -361,7 +454,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-# [0.3.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.2.2...ipfs-message-port-server@0.3.0) (2020-10-28)
+## [0.3.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.2.2...ipfs-message-port-server@0.3.0) (2020-10-28)
 
 
 ### Features
@@ -373,7 +466,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.2.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.2.1...ipfs-message-port-server@0.2.2) (2020-09-09)
+### [0.2.2](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.2.1...ipfs-message-port-server@0.2.2) (2020-09-09)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -381,7 +474,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.2.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.2.0...ipfs-message-port-server@0.2.1) (2020-09-04)
+### [0.2.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.2.0...ipfs-message-port-server@0.2.1) (2020-09-04)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
@@ -389,7 +482,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-# [0.2.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.1.1...ipfs-message-port-server@0.2.0) (2020-09-03)
+## [0.2.0](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.1.1...ipfs-message-port-server@0.2.0) (2020-09-03)
 
 
 ### Features
@@ -400,7 +493,7 @@ Co-authored-by: achingbrain <alex@achingbrain.net>
 
 
 
-## [0.1.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.1.0...ipfs-message-port-server@0.1.1) (2020-08-24)
+### [0.1.1](https://github.com/ipfs/js-ipfs/compare/ipfs-message-port-server@0.1.0...ipfs-message-port-server@0.1.1) (2020-08-24)
 
 **Note:** Version bump only for package ipfs-message-port-server
 
